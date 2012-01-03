@@ -9,8 +9,17 @@ use
 class tokenizer implements \iteratorAggregate
 {
 	protected $iterator = null;
+	protected $iterators = array();
 	protected $tokenizers = array();
 	protected $canTokenize = true;
+
+	public function __construct($string = null)
+	{
+		if ($string !== null)
+		{
+			$this->tokenize($string);
+		}
+	}
 
 	public function __toString()
 	{
@@ -29,14 +38,14 @@ class tokenizer implements \iteratorAggregate
 		return $this->tokenizers;
 	}
 
-	public function tokenizeString($string)
+	public function tokenize($string)
 	{
-		return $this->tokenizeArray(token_get_all($string));
+		return $this->setFromTokens(token_get_all($string));
 	}
 
-	public function tokenizeArray(array $tokens)
+	public function setFromTokens(array $tokens)
 	{
-		$this->iterator = new tokenizer\iterator();
+		$this->iterator = $this->getIteratorInstance();
 
 		$this->canTokenize = $this->canTokenize($tokens);
 
@@ -44,19 +53,19 @@ class tokenizer implements \iteratorAggregate
 		{
 			$tokenizer = $this->getTokenizer($tokens);
 
-			if ($tokenizer === null)
+			if ($tokenizer !== null)
 			{
-				$token = current($tokens);
+				$tokens = $tokenizer->setFromTokens($tokens);
 
-				$this->iterator[] = $this->handleToken($token);
+				$this->iterator->append($iterator = $tokenizer->getIterator());
 
-				array_shift($tokens);
+				$this->iterators[$iterator->getType()][] = $iterator;
 			}
 			else
 			{
-				$tokens = $tokenizer->tokenizeArray($tokens);
+				$this->iterator->append($this->handleToken(current($tokens)));
 
-				$this->iterator[] = $tokenizer;
+				array_shift($tokens);
 			}
 		}
 
@@ -73,6 +82,11 @@ class tokenizer implements \iteratorAggregate
 		return $this->iterator;
 	}
 
+	public function getFunctions()
+	{
+		return (isset($this->iterators[tokenizers\phpFunction\iterator::type]) === false ? array() : $this->iterators[tokenizers\phpFunction\iterator::type]);
+	}
+
 	protected function getTokenizer(array $tokens)
 	{
 		foreach ($this->tokenizers as $tokenizer)
@@ -84,6 +98,11 @@ class tokenizer implements \iteratorAggregate
 		}
 
 		return null;
+	}
+
+	protected function getIteratorInstance()
+	{
+		return new tokenizer\iterator();
 	}
 
 	protected function handleToken($token)

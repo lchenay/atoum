@@ -18,20 +18,20 @@ class tokenizer extends atoum\test
 			->if($tokenizer = new php\tokenizer())
 			->and($tokenizer->addTokenizer(new tokenizers\phpFunction()))
 			->then
-				->array($tokenizer->tokenizeString(''))->isEmpty()
+				->array($tokenizer->tokenize(''))->isEmpty()
 				->object($tokenizer->getIterator())->isInstanceOf('mageekguy\atoum\php\tokenizer\iterator')
 				->castToString($tokenizer->getIterator())->isEmpty()
-				->array($tokenizer->tokenizeString('<?php ?>'))->isEmpty()
+				->array($tokenizer->tokenize('<?php ?>'))->isEmpty()
 				->object($tokenizer->getIterator())->isInstanceOf('mageekguy\atoum\php\tokenizer\iterator')
 				->castToString($tokenizer->getIterator())->isEqualTo('<?php ?>')
-				->array($tokenizer->tokenizeString('<?php function foo() {} ?>'))->isEmpty()
+			->if($tokens = token_get_all($phpCode = '<?php function foo() {} ?>'))
+			->and($phpFunction = new tokenizers\phpFunction())
+			->and($phpFunction->setFromTokens(array_slice($tokens, 1, -2)))
+			->then
+				->array($tokenizer->tokenize($phpCode))->isEmpty()
 				->object($tokenizer->getIterator())->isInstanceOf('mageekguy\atoum\php\tokenizer\iterator')
-				->castToString($tokenizer->getIterator())->isEqualTo('<?php function foo() {} ?>')
-//			->if($iterator = $tokenizer->getIterator())
-//			->and($iterator->next())
-//			->and($functionIterator = $iterator->current())
-//			->then
-//				->castToString($functionIterator)->isEqualTo('function foo() {}')
+				->castToString($tokenizer->getIterator())->isEqualTo($phpCode)
+				->array($tokenizer->getFunctions())->isEqualTo(array($phpFunction->getIterator()))
 		;
 	}
 }

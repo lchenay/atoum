@@ -3,7 +3,8 @@
 namespace mageekguy\atoum\php\tokenizers;
 
 use
-	mageekguy\atoum\php
+	mageekguy\atoum\php,
+	mageekguy\atoum\php\tokenizers\phpFunction
 ;
 
 class phpFunction extends php\tokenizer
@@ -36,6 +37,12 @@ class phpFunction extends php\tokenizer
 
 		return $token;
 	}
+
+	protected function getIteratorInstance()
+	{
+		return new phpFunction\iterator();
+	}
+
 }
 
 ?>
