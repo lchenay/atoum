@@ -4,7 +4,8 @@ namespace mageekguy\atoum\tests\units\php;
 
 use
 	mageekguy\atoum,
-	mageekguy\atoum\php
+	mageekguy\atoum\php,
+	mageekguy\atoum\php\tokenizers
 ;
 
 require_once __DIR__ . '/../../runner.php';
@@ -15,16 +16,22 @@ class tokenizer extends atoum\test
 	{
 		$this->assert
 			->if($tokenizer = new php\tokenizer())
+			->and($tokenizer->addTokenizer(new tokenizers\phpFunction()))
 			->then
-				->object($tokenizer->tokenize(''))->isIdenticalTo($tokenizer)
+				->array($tokenizer->tokenizeString(''))->isEmpty()
 				->object($tokenizer->getIterator())->isInstanceOf('mageekguy\atoum\php\tokenizer\iterator')
 				->castToString($tokenizer->getIterator())->isEmpty()
-				->object($tokenizer->tokenize('<?php ?>'))->isIdenticalTo($tokenizer)
+				->array($tokenizer->tokenizeString('<?php ?>'))->isEmpty()
 				->object($tokenizer->getIterator())->isInstanceOf('mageekguy\atoum\php\tokenizer\iterator')
 				->castToString($tokenizer->getIterator())->isEqualTo('<?php ?>')
-				->object($tokenizer->tokenize('<?php function foo() {} ?>'))->isIdenticalTo($tokenizer)
+				->array($tokenizer->tokenizeString('<?php function foo() {} ?>'))->isEmpty()
 				->object($tokenizer->getIterator())->isInstanceOf('mageekguy\atoum\php\tokenizer\iterator')
 				->castToString($tokenizer->getIterator())->isEqualTo('<?php function foo() {} ?>')
+//			->if($iterator = $tokenizer->getIterator())
+//			->and($iterator->next())
+//			->and($functionIterator = $iterator->current())
+//			->then
+//				->castToString($functionIterator)->isEqualTo('function foo() {}')
 		;
 	}
 }
