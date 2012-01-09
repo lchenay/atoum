@@ -4,6 +4,7 @@ namespace mageekguy\atoum\php\tokenizers;
 
 use
 	mageekguy\atoum\php,
+	mageekguy\atoum\php\tokenizer,
 	mageekguy\atoum\php\tokenizers\phpFunction
 ;
 
@@ -11,18 +12,16 @@ class phpFunction extends php\tokenizer
 {
 	protected $stack = null;
 
-	public function canTokenize(array $tokens)
+	public function canTokenize(php\tokenizer\tokens $tokens)
 	{
-		$token = current($tokens);
-
-		return (isset($token[0]) === true && $token[0] === T_FUNCTION);
+		return $tokens->currentTokenHasName(T_FUNCTION) && $tokens->nextTokenHasName(T_STRING);
 	}
 
-	public function handleToken($token)
+	protected function appendToken(tokenizer\token $token)
 	{
-		$token = parent::handleToken($token);
+		parent::appendToken($token);
 
-		switch ($token)
+		switch ($token->getValue())
 		{
 			case '{':
 				++$this->stack;
@@ -35,10 +34,10 @@ class phpFunction extends php\tokenizer
 
 		$this->canTokenize = ($this->stack !== 0);
 
-		return $token;
+		return $this;
 	}
 
-	protected function getIteratorInstance()
+	protected static function getIteratorInstance()
 	{
 		return new phpFunction\iterator();
 	}

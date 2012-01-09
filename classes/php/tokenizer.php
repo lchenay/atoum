@@ -40,41 +40,39 @@ class tokenizer implements \iteratorAggregate
 
 	public function tokenize($string)
 	{
-		return $this->setFromTokens(token_get_all($string));
+		return $this->setFromTokens(new tokenizer\tokens($string));
 	}
 
-	public function setFromTokens(array $tokens)
+	public function setFromTokens(tokenizer\tokens $tokens)
 	{
-		$this->iterator = $this->getIteratorInstance();
+		$this->iterator = static::getIteratorInstance();
 
 		$this->canTokenize = $this->canTokenize($tokens);
 
-		while ($this->canTokenize === true && $tokens)
+		while ($this->canTokenize === true && $tokens->valid())
 		{
 			$tokenizer = $this->getTokenizer($tokens);
 
-			if ($tokenizer !== null)
+			if ($tokenizer === null)
 			{
-				$tokens = $tokenizer->setFromTokens($tokens);
+				$this->appendToken($tokens->current());
 
-				$this->iterator->append($iterator = $tokenizer->getIterator());
-
-				$this->iterators[$iterator->getType()][] = $iterator;
+				$tokens->next();
 			}
 			else
 			{
-				$this->iterator->append($this->handleToken(current($tokens)));
+				$this->iterator->append($iterator = $tokenizer->setFromTokens($tokens)->getIterator());
 
-				array_shift($tokens);
+				$this->iterators[$iterator->getType()][] = $iterator;
 			}
 		}
 
-		return $tokens;
+		return $this;
 	}
 
-	public function canTokenize(array $tokens)
+	public function canTokenize(tokenizer\tokens $tokens)
 	{
-		return self::currentTokenIs($tokens, T_OPEN_TAG);
+		return $tokens->currentTokenHasName(T_OPEN_TAG);
 	}
 
 	public function getIterator()
@@ -87,7 +85,14 @@ class tokenizer implements \iteratorAggregate
 		return (isset($this->iterators[tokenizers\phpFunction\iterator::type]) === false ? array() : $this->iterators[tokenizers\phpFunction\iterator::type]);
 	}
 
-	protected function getTokenizer(array $tokens)
+	protected function appendToken(tokenizer\token $token)
+	{
+		$this->iterator->append($token);
+
+		return $this;
+	}
+
+	protected function getTokenizer(tokenizer\tokens $tokens)
 	{
 		foreach ($this->tokenizers as $tokenizer)
 		{
@@ -100,21 +105,9 @@ class tokenizer implements \iteratorAggregate
 		return null;
 	}
 
-	protected function getIteratorInstance()
+	protected static function getIteratorInstance()
 	{
 		return new tokenizer\iterator();
-	}
-
-	protected function handleToken($token)
-	{
-		return (is_array($token) === false || isset($token[1]) === false ? $token : $token[1]);
-	}
-
-	protected static function currentTokenIs($tokens, $tokenName)
-	{
-		$token = current($tokens);
-
-		return (isset($token[0]) === true && $token[0] === $tokenName);
 	}
 }
 
