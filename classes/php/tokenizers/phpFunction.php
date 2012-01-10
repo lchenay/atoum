@@ -17,6 +17,18 @@ class phpFunction extends php\tokenizer
 		return $tokens->currentTokenHasName(T_FUNCTION) && $tokens->nextTokenHasName(T_STRING);
 	}
 
+	public function tokenize($string)
+	{
+		$tokens = new tokenizer\tokens($string);
+
+		if ($tokens->valid() === true && $tokens->current()->getName() === T_OPEN_TAG)
+		{
+			$tokens->next();
+		}
+
+		return $this->setFromTokens($tokens);
+	}
+
 	protected function appendToken(tokenizer\token $token)
 	{
 		parent::appendToken($token);
@@ -32,16 +44,19 @@ class phpFunction extends php\tokenizer
 				break;
 		}
 
-		$this->canTokenize = ($this->stack !== 0);
+		if ($this->stack === 0)
+		{
+			$this->started = false;
+			$this->stack = null;
+		}
 
 		return $this;
 	}
 
-	protected static function getIteratorInstance()
+	public function getIteratorInstance()
 	{
 		return new phpFunction\iterator();
 	}
-
 }
 
 ?>

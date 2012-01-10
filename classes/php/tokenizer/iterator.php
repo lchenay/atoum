@@ -2,7 +2,7 @@
 
 namespace mageekguy\atoum\php\tokenizer;
 
-class iterator extends \arrayIterator
+class iterator extends tokens
 {
 	const type = 'script';
 
