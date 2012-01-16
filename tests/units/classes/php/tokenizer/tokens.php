@@ -38,10 +38,10 @@ class tokens extends atoum\test
 		;
 	}
 
-	public function __toString()
+	public function test__toString()
 	{
 		$this->assert
-			->if($tokens = new tokenizer\tokens(''))
+			->if($tokens = new tokenizer\tokens())
 			->then
 				->castToString($tokens)->isEmpty()
 			->if($tokens = new tokenizer\tokens($string = uniqid()))
@@ -125,6 +125,33 @@ class tokens extends atoum\test
 		;
 	}
 
+	public function testPrev()
+	{
+		$this->assert
+			->if($tokens = new tokenizer\tokens(''))
+			->then
+				->object($tokens->prev())->isIdenticalTo($tokens)
+			->if($tokens = new tokenizer\tokens('<?php function foo() { } ?>'))
+			->and($tokens->next()->next()->next()->next()->next()->next()->next()->next()->next()->next()->next())
+			->then
+				->object($tokens->prev())->isIdenticalTo($tokens)
+				->integer($tokens->key())->isEqualTo(10)
+				->castToString($tokens->current())->isEqualTo(' ')
+				->object($tokens->prev())->isIdenticalTo($tokens)
+				->integer($tokens->key())->isEqualTo(9)
+				->castToString($tokens->current())->isEqualTo('}')
+			->if($tokens->next())
+			->and($tokens->skipTokenNames(array(T_WHITESPACE)))
+			->then
+				->object($tokens->prev())->isIdenticalTo($tokens)
+				->integer($tokens->key())->isEqualTo(9)
+				->castToString($tokens->current())->isEqualTo('}')
+				->object($tokens->prev())->isIdenticalTo($tokens)
+				->integer($tokens->key())->isEqualTo(7)
+				->castToString($tokens->current())->isEqualTo('{')
+		;
+	}
+
 	public function testRewind()
 	{
 		$this->assert
@@ -143,7 +170,7 @@ class tokens extends atoum\test
 	public function testNextTokenHasName()
 	{
 		$this->assert
-			->if($tokens = new tokenizer\tokens(''))
+			->if($tokens = new tokenizer\tokens())
 			->then
 				->boolean($tokens->nextTokenHasName(T_OPEN_TAG))->isFalse()
 				->boolean($tokens->nextTokenHasName(T_CLOSE_TAG))->isFalse()
@@ -159,6 +186,29 @@ class tokens extends atoum\test
 				->boolean($tokens->nextTokenHasName(T_OPEN_TAG))->isFalse()
 				->integer($tokens->key())->isEqualTo(1)
 				->boolean($tokens->nextTokenHasName(T_WHITESPACE))->isTrue()
+				->integer($tokens->key())->isEqualTo(1)
+			->if($tokens->rewind())
+			->then
+				->boolean($tokens->nextTokenHasName(T_OPEN_TAG))->isFalse()
+				->integer($tokens->key())->isEqualTo(0)
+				->boolean($tokens->nextTokenHasName(T_STRING, array(T_WHITESPACE, T_FUNCTION)))->isTrue()
+				->integer($tokens->key())->isEqualTo(0)
+		;
+	}
+
+	public function testGoToNextTokenWithName()
+	{
+		$this->assert
+			->if($tokens = new tokenizer\tokens(''))
+			->then
+				->boolean($tokens->goToNextTokenWithName(T_OPEN_TAG))->isFalse()
+			->if($tokens = new tokenizer\tokens('<?php ?>'))
+			->then
+				->boolean($tokens->goToNextTokenWithName(T_OPEN_TAG))->isFalse()
+				->integer($tokens->key())->isZero()
+				->boolean($tokens->goToNextTokenWithName(T_FUNCTION))->isFalse()
+				->integer($tokens->key())->isZero()
+				->boolean($tokens->goToNextTokenWithName(T_CLOSE_TAG))->isTrue()
 				->integer($tokens->key())->isEqualTo(1)
 		;
 	}

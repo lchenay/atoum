@@ -6,16 +6,18 @@ class iterator extends tokens
 {
 	const type = 'script';
 
-	public function __toString()
+	private $parent = null;
+
+	public function setParent(iterator $parent)
 	{
-		$string = '';
+		$this->parent = $parent;
 
-		foreach ($this as $token)
-		{
-			$string .= $token;
-		}
+		return $this;
+	}
 
-		return $string;
+	public function getParent()
+	{
+		return $this->parent;
 	}
 
 	public function getType()

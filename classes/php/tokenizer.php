@@ -11,7 +11,8 @@ class tokenizer implements \iteratorAggregate
 	protected $iterator = null;
 	protected $iterators = array();
 	protected $tokenizers = array();
-	protected $started = false;
+
+	private $started = false;
 
 	public function __construct($string = null)
 	{
@@ -46,10 +47,14 @@ class tokenizer implements \iteratorAggregate
 	public function setFromTokens(tokenizer\tokens $tokens)
 	{
 		$this->iterator = $this->getIteratorInstance();
+		$this->iterators = array();
 
-		$this->started = $this->canTokenize($tokens);
+		if ($this->canTokenize($tokens) === true)
+		{
+			$this->start($tokens);
+		}
 
-		while ($this->started === true && $tokens->valid() === true)
+		while ($this->isStarted() === true && $tokens->valid() === true)
 		{
 			if (($tokenizer = $this->getTokenizer($tokens)) === null)
 			{
@@ -78,9 +83,19 @@ class tokenizer implements \iteratorAggregate
 		return $this->iterator;
 	}
 
+	public function getIterators($type = null)
+	{
+		return ($type === null ? $this->iterators : (isset($this->iterators[$type]) === false ? array() : $this->iterators[$type]));
+	}
+
 	public function getFunctions()
 	{
-		return (isset($this->iterators[tokenizers\phpFunction\iterator::type]) === false ? array() : $this->iterators[tokenizers\phpFunction\iterator::type]);
+		return $this->getIterators(tokenizers\phpFunction\iterator::type);
+	}
+
+	public function getClasses()
+	{
+		return $this->getIterators(tokenizers\phpClass\iterator::type);
 	}
 
 	public function getIteratorInstance()
@@ -106,6 +121,25 @@ class tokenizer implements \iteratorAggregate
 		}
 
 		return null;
+	}
+
+	protected function start(tokenizer\tokens $tokens)
+	{
+		$this->started = true;
+
+		return $this;
+	}
+
+	protected function isStarted()
+	{
+		return ($this->started === true);
+	}
+
+	protected function stop()
+	{
+		$this->started = false;
+
+		return $this;
 	}
 }
 

@@ -4,17 +4,16 @@ namespace mageekguy\atoum\php\tokenizers;
 
 use
 	mageekguy\atoum\php,
-	mageekguy\atoum\php\tokenizer,
-	mageekguy\atoum\php\tokenizers\phpFunction
+	mageekguy\atoum\php\tokenizer
 ;
 
-class phpFunction extends php\tokenizer
+class phpClass extends php\tokenizer
 {
 	private $stack = null;
 
-	public function canTokenize(php\tokenizer\tokens $tokens)
+	public function canTokenize(tokenizer\tokens $tokens)
 	{
-		return $tokens->currentTokenHasName(T_FUNCTION) && $tokens->nextTokenHasName(T_STRING, array(T_WHITESPACE));
+		return $tokens->currentTokenHasName(T_CLASS);
 	}
 
 	public function tokenize($string)
@@ -27,6 +26,32 @@ class phpFunction extends php\tokenizer
 		}
 
 		return $this->setFromTokens($tokens);
+	}
+
+	protected function start(tokenizer\tokens $tokens)
+	{
+		$goToPreviousToken = true;
+
+		while ($tokens->valid() === true && $goToPreviousToken === true)
+		{
+			$tokens->prev();
+
+			switch (true)
+			{
+				case $tokens->currentTokenHasName(T_WHITESPACE):
+				case $tokens->currentTokenHasName(T_FINAL):
+				case $tokens->currentTokenHasName(T_ABSTRACT):
+					$tokens->prev();
+					break;
+
+				default:
+					$goToPreviousToken = false;
+			}
+		}
+
+		$tokens->next();
+
+		return parent::start($tokens);
 	}
 
 	protected function appendToken(tokenizer\token $token)
@@ -55,7 +80,7 @@ class phpFunction extends php\tokenizer
 
 	public function getIteratorInstance()
 	{
-		return new phpFunction\iterator();
+		return new phpClass\iterator();
 	}
 }
 

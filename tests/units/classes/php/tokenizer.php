@@ -12,6 +12,34 @@ require_once __DIR__ . '/../../runner.php';
 
 class tokenizer extends atoum\test
 {
+	public function test__construct()
+	{
+		$this->assert
+			->if($tokenizer = new php\tokenizer())
+			->then
+				->variable($tokenizer->getIterator())->isNull()
+				->array($tokenizer->getTokenizers())->isEmpty()
+				->array($tokenizer->getIterators())->isEmpty()
+			->if($tokenizer = new php\tokenizer('<?php ?>'))
+			->then
+				->object($tokenizer->getIterator())->isInstanceOf('mageekguy\atoum\php\tokenizer\iterator')
+				->array($tokenizer->getTokenizers())->isEmpty()
+				->array($tokenizer->getIterators())->isEmpty()
+		;
+	}
+
+	public function test__toString()
+	{
+		$this->assert
+			->if($tokenizer = new php\tokenizer())
+			->then
+				->castToString($tokenizer)->isEmpty()
+			->if($tokenizer = new php\tokenizer('<?php ?>'))
+			->then
+				->castToString($tokenizer)->isEqualTo('<?php ?>')
+		;
+	}
+
 	public function testTokenize()
 	{
 		$this->assert
@@ -32,12 +60,22 @@ class tokenizer extends atoum\test
 				->object($tokenizer->tokenize($phpCode))->isIdenticalTo($tokenizer)
 				->object($tokenizer->getIterator())->isInstanceOf('mageekguy\atoum\php\tokenizer\iterator')
 				->castToString($tokenizer->getIterator())->isEqualTo($phpCode)
+				->array($tokenizer->getIterators())->isEqualTo(array(tokenizers\phpFunction\iterator::type => array($phpFunction->getIterator())))
+				->array($tokenizer->getIterators(tokenizers\phpFunction\iterator::type))->isEqualTo(array($phpFunction->getIterator()))
 				->array($tokenizer->getFunctions())->isEqualTo(array($phpFunction->getIterator()))
+			->if($tokens = new php\tokenizer\tokens($phpCode = '<?php class foo {} ?>'))
+			->and($tokenizer->addTokenizer(new tokenizers\phpClass()))
+			->and($tokens->next())
+			->and($phpClass = new tokenizers\phpClass())
+			->and($phpClass->setFromTokens($tokens))
+			->then
+				->object($tokenizer->tokenize($phpCode))->isIdenticalTo($tokenizer)
+				->object($tokenizer->getIterator())->isInstanceOf('mageekguy\atoum\php\tokenizer\iterator')
+				->castToString($tokenizer->getIterator())->isEqualTo($phpCode)
+				->array($tokenizer->getIterators())->isEqualTo(array(tokenizers\phpClass\iterator::type => array($phpClass->getIterator())))
+				->array($tokenizer->getIterators(tokenizers\phpClass\iterator::type))->isEqualTo(array($phpClass->getIterator()))
+				->array($tokenizer->getClasses())->isEqualTo(array($phpClass->getIterator()))
 		;
-	}
-
-	public function testCurrentTokenIs()
-	{
 	}
 }
 

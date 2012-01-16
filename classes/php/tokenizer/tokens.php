@@ -43,6 +43,24 @@ class tokens extends \arrayIterator
 		return $this;
 	}
 
+	public function prev()
+	{
+		if ($this->valid() === true)
+		{
+			$this->seek($this->key() - 1);
+
+			if (sizeof($this->skippedTokenNames) > 0)
+			{
+				while ($this->valid() === true && in_array($this->current()->getName(), $this->skippedTokenNames) === true)
+				{
+					$this->prev();
+				}
+			}
+		}
+
+		return $this;
+	}
+
 	public function rewind()
 	{
 		parent::rewind();
@@ -74,7 +92,7 @@ class tokens extends \arrayIterator
 		return ($this->valid() === true && $this->current()->getName() === $name);
 	}
 
-	public function nextTokenHasName($name)
+	public function nextTokenHasName($name, array $skippedTokenNames = array())
 	{
 		$hasName = false;
 
@@ -84,27 +102,46 @@ class tokens extends \arrayIterator
 
 			$this->next();
 
-			while ($this->valid() === true && $hasName === false)
+			while ($this->valid() === true && $this->currentTokenIsSkipped($skippedTokenNames) === true)
 			{
-				if ($this->currentTokenHasName($name) === true)
-				{
-					$hasName = true;
-				}
-				else
-				{
-					$this->next();
-				}
+				$this->next();
 			}
+
+			$hasName = $this->currentTokenHasName($name);
 
 			$this->seek($key);
-
-			if ($this->key() !== $key)
-			{
-				throw new \exception($this->key() . '/' . $key . '/' . $this->current() . '/' . $this);
-			}
 		}
 
 		return $hasName;
+	}
+
+	public function goToNextTokenWithName($name)
+	{
+		$tokenFound = false;
+
+		if ($this->valid() === true)
+		{
+			$key = $this->key();
+
+			while ($this->valid() === true && $tokenFound === false)
+			{
+				$tokenFound = $this->next()->currentTokenHasName($name);
+			}
+
+			if ($tokenFound === false)
+			{
+				$this->seek($key);
+			}
+		}
+
+		return $tokenFound;
+	}
+
+	protected function currentTokenIsSkipped(array $skippedTokenNames)
+	{
+		$skippedTokenNames = array_merge($this->skippedTokenNames, $skippedTokenNames);
+
+		return (sizeof($skippedTokenNames) <= 0 ? false : in_array($this->current()->getName(), $skippedTokenNames) === true);
 	}
 }
 
