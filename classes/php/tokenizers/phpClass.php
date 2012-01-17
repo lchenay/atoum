@@ -4,7 +4,8 @@ namespace mageekguy\atoum\php\tokenizers;
 
 use
 	mageekguy\atoum\php,
-	mageekguy\atoum\php\tokenizer
+	mageekguy\atoum\php\tokenizer,
+	mageekguy\atoum\php\tokenizers\phpClass
 ;
 
 class phpClass extends php\tokenizer
@@ -13,7 +14,49 @@ class phpClass extends php\tokenizer
 
 	public function canTokenize(tokenizer\tokens $tokens)
 	{
-		return $tokens->currentTokenHasName(T_CLASS);
+		$canTokenize = $tokens->currentTokenHasName(T_CLASS);
+
+		if (
+				$canTokenize === false
+				&&
+				(
+					$tokens->currentTokenHasName(T_FINAL)
+					||
+					$tokens->currentTokenHasName(T_ABSTRACT)
+				)
+				&&
+				$tokens->valid() === true
+			)
+		{
+			$key = $tokens->key();
+
+			$goToNextToken = true;
+
+			while ($tokens->valid() === true && $goToNextToken === true)
+			{
+				$tokens->next();
+
+				switch (true)
+				{
+					case $tokens->currentTokenHasName(T_WHITESPACE):
+					case $tokens->currentTokenHasName(T_FINAL):
+					case $tokens->currentTokenHasName(T_ABSTRACT):
+						break;
+
+					case  $tokens->currentTokenHasName(T_CLASS):
+						$canTokenize = true;
+						$goToNextToken = false;
+						break;
+
+					default:
+						$goToNextToken = false;
+				}
+			}
+
+			$tokens->seek($key);
+		}
+
+		return $canTokenize;
 	}
 
 	public function tokenize($string)
@@ -28,30 +71,9 @@ class phpClass extends php\tokenizer
 		return $this->setFromTokens($tokens);
 	}
 
-	protected function start(tokenizer\tokens $tokens)
+	public function getFunctions()
 	{
-		$goToPreviousToken = true;
-
-		while ($tokens->valid() === true && $goToPreviousToken === true)
-		{
-			$tokens->prev();
-
-			switch (true)
-			{
-				case $tokens->currentTokenHasName(T_WHITESPACE):
-				case $tokens->currentTokenHasName(T_FINAL):
-				case $tokens->currentTokenHasName(T_ABSTRACT):
-					$tokens->prev();
-					break;
-
-				default:
-					$goToPreviousToken = false;
-			}
-		}
-
-		$tokens->next();
-
-		return parent::start($tokens);
+		return $this->getIterators(phpClass\phpFunction\iterator::type);
 	}
 
 	protected function appendToken(tokenizer\token $token)

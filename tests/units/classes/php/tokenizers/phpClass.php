@@ -68,21 +68,22 @@ class phpClass extends atoum\test
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isZero()
-			->if($tokens = new tokenizer\tokens('<?php class foo { function bar() {} } ?>'))
+			->if($tokens = new tokenizer\tokens('<?php class foo { public function bar() {} } ?>'))
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isZero()
 			->if($tokens->goToNextTokenWithName(T_CLASS))
+			->and($phpFunction = new tokenizers\phpClass\phpFunction('<?php public function bar() {} ?>'))
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isGreaterThan(0)
-				->castToString($tokenizer->getIterator())->isEqualTo('class foo { function bar() {} }')
+				->castToString($tokenizer->getIterator())->isEqualTo('class foo { public function bar() {} }')
 			->if($tokens->rewind()->goToNextTokenWithName(T_CLASS))
 			->and($tokenizer->addTokenizer(new tokenizers\phpClass\phpFunction()))
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isGreaterThan(0)
-				->castToString($tokenizer->getIterator())->isEqualTo('class foo { function bar() {} }')
+				->castToString($tokenizer->getIterator())->isEqualTo('class foo { public function bar() {} }')
 		;
 	}
 

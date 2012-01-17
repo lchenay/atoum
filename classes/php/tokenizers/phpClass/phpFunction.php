@@ -15,43 +15,63 @@ class phpFunction extends php\tokenizers\phpFunction
 		return new phpFunction\iterator();
 	}
 
-	protected function start(php\tokenizer\tokens $tokens)
+	public function canTokenize(tokenizer\tokens $tokens)
 	{
-		$goToPreviousToken = true;
-		$currentTokenIsWhitespace = false;
+		$canTokenize = parent::canTokenize($tokens);
 
-		while ($tokens->valid() === true && $goToPreviousToken === true)
+		if (
+				$canTokenize === false
+				&&
+				(
+					$tokens->currentTokenHasName(T_FINAL)
+					||
+					$tokens->currentTokenHasName(T_ABSTRACT)
+					||
+					$tokens->currentTokenHasName(T_STATIC)
+					||
+					$tokens->currentTokenHasName(T_PUBLIC)
+					||
+					$tokens->currentTokenHasName(T_PROTECTED)
+					||
+					$tokens->currentTokenHasName(T_PRIVATE)
+				)
+				&&
+				$tokens->valid() === true
+			)
 		{
-			$tokens->prev();
+			$key = $tokens->key();
 
-			switch (true)
+			$goToNextToken = true;
+
+			while ($tokens->valid() === true && $goToNextToken === true)
 			{
-				case $tokens->currentTokenHasName(T_WHITESPACE):
-					$currentTokenIsWhitespace = true;
-					break;
+				$tokens->next();
 
-				case $tokens->currentTokenHasName(T_FINAL):
-				case $tokens->currentTokenHasName(T_ABSTRACT):
-				case $tokens->currentTokenHasName(T_STATIC):
-				case $tokens->currentTokenHasName(T_PUBLIC):
-				case $tokens->currentTokenHasName(T_PROTECTED):
-				case $tokens->currentTokenHasName(T_PRIVATE):
-					$currentTokenIsWhitespace = false;
-					break;
+				switch (true)
+				{
+					case $tokens->currentTokenHasName(T_WHITESPACE):
+					case $tokens->currentTokenHasName(T_FINAL):
+					case $tokens->currentTokenHasName(T_ABSTRACT):
+					case $tokens->currentTokenHasName(T_STATIC):
+					case $tokens->currentTokenHasName(T_PUBLIC):
+					case $tokens->currentTokenHasName(T_PROTECTED):
+					case $tokens->currentTokenHasName(T_PRIVATE):
+						break;
 
-				default:
-					$goToPreviousToken = false;
+					case  $tokens->currentTokenHasName(T_FUNCTION):
+						$canTokenize = parent::canTokenize($tokens);
+						$goToNextToken = false;
+						break;
+
+					default:
+						$goToNextToken = false;
+				}
 			}
+
+			$tokens->seek($key);
 		}
 
-		if ($currentTokenIsWhitespace === true)
-		{
-			$tokens->next();
-		}
-
-		$tokens->next();
-
-		return parent::start($tokens);
+		return $canTokenize;
 	}
 }
 

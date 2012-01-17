@@ -31,26 +31,31 @@ class phpFunction extends atoum\test
 			->then
 				->boolean($tokenizer->canTokenize($tokens))->isFalse()
 			->if($tokens->next())
+			->then
 				->boolean($tokenizer->canTokenize($tokens))->isTrue()
 			->if($tokens->next())
+			->then
 				->boolean($tokenizer->canTokenize($tokens))->isFalse()
 			->if($tokens = new tokenizer\tokens('<?php public function foo(); ?>'))
 			->then
 				->boolean($tokenizer->canTokenize($tokens))->isFalse()
-			->if($tokens->next())
-				->boolean($tokenizer->canTokenize($tokens))->isFalse()
-			->if($tokens->next())
-				->boolean($tokenizer->canTokenize($tokens))->isFalse()
-			->if($tokens->next())
+			->if($tokens->goToNextTokenWithName(T_PUBLIC))
+			->then
 				->boolean($tokenizer->canTokenize($tokens))->isTrue()
 			->if($tokens->next())
+			->then
 				->boolean($tokenizer->canTokenize($tokens))->isFalse()
+			->if($tokens->next())
+			->then
+				->boolean($tokenizer->canTokenize($tokens))->isTrue()
 			->if($tokens = new tokenizer\tokens('<?php function() {} ?>'))
 			->then
 				->boolean($tokenizer->canTokenize($tokens))->isFalse()
 			->if($tokens->next())
+			->then
 				->boolean($tokenizer->canTokenize($tokens))->isFalse()
 			->if($tokens->next())
+			->then
 				->boolean($tokenizer->canTokenize($tokens))->isFalse()
 		;
 	}
@@ -93,7 +98,7 @@ class phpFunction extends atoum\test
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isZero()
-			->if($tokens->goToNextTokenWithName(T_FUNCTION))
+			->if($tokens->goToNextTokenWithName(T_PUBLIC))
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isGreaterThan(0)
@@ -102,7 +107,7 @@ class phpFunction extends atoum\test
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isZero()
-			->if($tokens->goToNextTokenWithName(T_FUNCTION))
+			->if($tokens->goToNextTokenWithName(T_PROTECTED))
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isGreaterThan(0)
@@ -111,7 +116,7 @@ class phpFunction extends atoum\test
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isZero()
-			->if($tokens->goToNextTokenWithName(T_FUNCTION))
+			->if($tokens->goToNextTokenWithName(T_PRIVATE))
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isGreaterThan(0)
@@ -120,7 +125,7 @@ class phpFunction extends atoum\test
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isZero()
-			->if($tokens->goToNextTokenWithName(T_FUNCTION))
+			->if($tokens->goToNextTokenWithName(T_ABSTRACT))
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isGreaterThan(0)
@@ -129,7 +134,7 @@ class phpFunction extends atoum\test
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isZero()
-			->if($tokens->goToNextTokenWithName(T_FUNCTION))
+			->if($tokens->goToNextTokenWithName(T_FINAL))
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isGreaterThan(0)
@@ -138,7 +143,7 @@ class phpFunction extends atoum\test
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isZero()
-			->if($tokens->goToNextTokenWithName(T_FUNCTION))
+			->if($tokens->goToNextTokenWithName(T_PUBLIC))
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isGreaterThan(0)
@@ -147,7 +152,7 @@ class phpFunction extends atoum\test
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isZero()
-			->if($tokens->goToNextTokenWithName(T_FUNCTION))
+			->if($tokens->goToNextTokenWithName(T_PUBLIC))
 			->then
 				->object($tokenizer->setFromTokens($tokens))->isIdenticalTo($tokenizer)
 				->sizeOf($tokenizer->getIterator())->isGreaterThan(0)
