@@ -92,6 +92,11 @@ class tokens extends \arrayIterator
 		return ($this->valid() === true && $this->current()->getName() === $name);
 	}
 
+	public function currentTokenHasValue($value)
+	{
+		return ($this->valid() === true && $this->current()->getValue() === $value);
+	}
+
 	public function nextTokenHasName($name, array $skippedTokenNames = array())
 	{
 		$hasName = false;
@@ -113,6 +118,29 @@ class tokens extends \arrayIterator
 		}
 
 		return $hasName;
+	}
+
+	public function nextTokenHasValue($value, array $skippedTokenNames = array())
+	{
+		$hasValue = false;
+
+		if ($this->valid() === true)
+		{
+			$key = $this->key();
+
+			$this->next();
+
+			while ($this->valid() === true && $this->currentTokenIsSkipped($skippedTokenNames) === true)
+			{
+				$this->next();
+			}
+
+			$hasValue = $this->currentTokenHasValue($value);
+
+			$this->seek($key);
+		}
+
+		return $hasValue;
 	}
 
 	public function goToNextTokenWithName($name)

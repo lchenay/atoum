@@ -99,6 +99,28 @@ class tokens extends atoum\test
 		;
 	}
 
+	public function testCurrentTokenHasValue()
+	{
+		$this->assert
+			->if($tokens = new tokenizer\tokens(''))
+			->then
+				->boolean($tokens->currentTokenHasValue('<?php '))->isFalse()
+				->boolean($tokens->currentTokenHasValue('?>'))->isFalse()
+			->if($tokens = new tokenizer\tokens('<?php ?>'))
+			->then
+				->boolean($tokens->currentTokenHasValue('<?php '))->isTrue()
+				->boolean($tokens->currentTokenHasValue('?>'))->isFalse()
+			->if($tokens->next())
+			->then
+				->boolean($tokens->currentTokenHasValue('<?php '))->isFalse()
+				->boolean($tokens->currentTokenHasValue('?>'))->isTrue()
+			->if($tokens->next())
+			->then
+				->boolean($tokens->currentTokenHasValue('<?php '))->isFalse()
+				->boolean($tokens->currentTokenHasValue('?>'))->isFalse()
+		;
+	}
+
 	public function testNext()
 	{
 		$this->assert
@@ -192,6 +214,35 @@ class tokens extends atoum\test
 				->boolean($tokens->nextTokenHasName(T_OPEN_TAG))->isFalse()
 				->integer($tokens->key())->isEqualTo(0)
 				->boolean($tokens->nextTokenHasName(T_STRING, array(T_WHITESPACE, T_FUNCTION)))->isTrue()
+				->integer($tokens->key())->isEqualTo(0)
+		;
+	}
+
+	public function testNextTokenHasValue()
+	{
+		$this->assert
+			->if($tokens = new tokenizer\tokens())
+			->then
+				->boolean($tokens->nextTokenHasValue('<?php '))->isFalse()
+				->boolean($tokens->nextTokenHasValue('?>'))->isFalse()
+			->if($tokens = new tokenizer\tokens('<?php ?>'))
+			->then
+				->boolean($tokens->nextTokenHasValue('<?php '))->isFalse()
+				->integer($tokens->key())->isEqualTo(0)
+				->boolean($tokens->nextTokenHasValue('?>'))->isTrue()
+				->integer($tokens->key())->isEqualTo(0)
+			->if($tokens = new tokenizer\tokens('<?php function foo() {} ?>'))
+			->and($tokens->next())
+			->then
+				->boolean($tokens->nextTokenHasValue('<?php '))->isFalse()
+				->integer($tokens->key())->isEqualTo(1)
+				->boolean($tokens->nextTokenHasValue(' '))->isTrue()
+				->integer($tokens->key())->isEqualTo(1)
+			->if($tokens->rewind())
+			->then
+				->boolean($tokens->nextTokenHasValue('<?php '))->isFalse()
+				->integer($tokens->key())->isEqualTo(0)
+				->boolean($tokens->nextTokenHasValue('foo', array(T_WHITESPACE, T_FUNCTION)))->isTrue()
 				->integer($tokens->key())->isEqualTo(0)
 		;
 	}

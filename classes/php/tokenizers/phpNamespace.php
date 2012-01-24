@@ -10,14 +10,55 @@ use
 
 class phpNamespace extends php\tokenizer
 {
+	protected $stack = null;
+	protected $hasCurlyBrace = false;
+
 	public function canTokenize(tokenizer\tokens $tokens)
 	{
-		return $tokens->currentTokenHasName(T_NAMESPACE);
+		$canTokenize = $tokens->currentTokenHasName(T_NAMESPACE);
+
+		$this->hasCurlyBrace = $tokens->nextTokenHasValue('{', array(T_STRING, T_WHITESPACE));
+
+		return $canTokenize;
 	}
 
 	public function getIteratorInstance()
 	{
 		return new phpNamespace\iterator();
+	}
+
+	protected function appendToken(tokenizer\token $token)
+	{
+		if ($token->getName() === T_CLOSE_TAG)
+		{
+			$this->stop();
+		}
+		else
+		{
+			parent::appendToken($token);
+
+			if ($this->hasCurlyBrace === true)
+			{
+				switch ($token->getValue())
+				{
+					case '{':
+						++$this->stack;
+						break;
+
+					case '}':
+						--$this->stack;
+						break;
+				}
+
+				if ($this->stack === 0)
+				{
+					$this->stack = null;
+					$this->stop();
+				}
+			}
+		}
+
+		return $this;
 	}
 }
 
