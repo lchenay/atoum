@@ -27,34 +27,34 @@ class phpNamespace extends php\tokenizer
 		return new phpNamespace\iterator();
 	}
 
-	protected function appendToken(tokenizer\token $token)
+	protected function appendCurrentToken(tokenizer\tokens $tokens)
 	{
-		if ($token->getName() === T_CLOSE_TAG)
+		parent::appendCurrentToken($tokens);
+
+		if ($this->hasCurlyBrace === false)
 		{
-			$this->stop();
+			if ($tokens->nextTokenHasName(T_NAMESPACE) === true || $tokens->nextTokenHasName(T_CLOSE_TAG) === true)
+			{
+				$this->stop();
+			}
 		}
 		else
 		{
-			parent::appendToken($token);
-
-			if ($this->hasCurlyBrace === true)
+			switch ($tokens->current()->getValue())
 			{
-				switch ($token->getValue())
-				{
-					case '{':
-						++$this->stack;
-						break;
+				case '{':
+					++$this->stack;
+					break;
 
-					case '}':
-						--$this->stack;
-						break;
-				}
+				case '}':
+					--$this->stack;
+					break;
+			}
 
-				if ($this->stack === 0)
-				{
-					$this->stack = null;
-					$this->stop();
-				}
+			if ($this->stack === 0)
+			{
+				$this->stack = null;
+				$this->stop();
 			}
 		}
 

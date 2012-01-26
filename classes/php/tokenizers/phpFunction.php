@@ -29,11 +29,11 @@ class phpFunction extends php\tokenizer
 		return $this->setFromTokens($tokens);
 	}
 
-	protected function appendToken(tokenizer\token $token)
+	protected function appendCurrentToken(tokenizer\tokens $tokens)
 	{
-		parent::appendToken($token);
+		parent::appendCurrentToken($tokens);
 
-		switch ($token->getValue())
+		switch ($tokens->current()->getValue())
 		{
 			case '{':
 				++$this->stack;

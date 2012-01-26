@@ -58,7 +58,7 @@ class tokenizer implements \iteratorAggregate
 		{
 			if (($tokenizer = $this->getTokenizer($tokens)) === null)
 			{
-				$this->appendToken($tokens->current());
+				$this->appendCurrentToken($tokens);
 
 				$tokens->next();
 			}
@@ -103,9 +103,9 @@ class tokenizer implements \iteratorAggregate
 		return new tokenizer\iterator();
 	}
 
-	protected function appendToken(tokenizer\token $token)
+	protected function appendCurrentToken(tokenizer\tokens $tokens)
 	{
-		$this->iterator->append($token);
+		$this->iterator->append($tokens->current());
 
 		return $this;
 	}
