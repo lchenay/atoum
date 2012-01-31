@@ -94,6 +94,46 @@ class phpClass extends atoum\test
 				->object($tokenizer->getIteratorInstance())->isEqualTo(new tokenizers\phpClass\iterator())
 		;
 	}
+
+	public function testGetName()
+	{
+		$this
+		->assert
+			->if($tokenizer = new tokenizers\phpClass())
+			->then
+				->variable($tokenizer->getName())->isNull()
+		->assert
+			->if($tokenizer = new tokenizers\phpClass('<?php class foo { public function bar() {} } ?>'))
+			->then
+				->string($tokenizer->getName())->isEqualTo('foo')
+		->assert
+			->if($tokenizer = new tokenizers\phpClass('<?php abstract class foo { public function bar() {} } ?>'))
+			->then
+				->string($tokenizer->getName())->isEqualTo('foo')
+		->assert
+			->if($tokenizer = new tokenizers\phpClass('<?php final class foo { public function bar() {} } ?>'))
+			->then
+				->string($tokenizer->getName())->isEqualTo('foo')
+		;
+	}
+
+	public function testGetParent()
+	{
+		$this
+		->assert
+			->if($tokenizer = new tokenizers\phpClass())
+			->then
+				->variable($tokenizer->getParent())->isNull()
+		->assert
+			->if($tokenizer = new tokenizers\phpClass('<?php class foo { public function bar() {} } ?>'))
+			->then
+				->variable($tokenizer->getParent())->isNull()
+		->assert
+			->if($tokenizer = new tokenizers\phpClass('<?php class foo extends bar { public function bar() {} } ?>'))
+			->then
+				->string($tokenizer->getParent())->isEqualTo('bar')
+		;
+	}
 }
 
 ?>

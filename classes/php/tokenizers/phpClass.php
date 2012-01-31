@@ -10,7 +10,21 @@ use
 
 class phpClass extends php\tokenizer
 {
+	protected $name = null;
+	protected $parent = null;
+
 	private $stack = null;
+	private $nextTokenIsName = false;
+	private $nextTokenIsParent = false;
+
+	public function __construct($string = null)
+	{
+		$this->putInString($this->name)->valueOf(T_STRING)->afterName(T_CLASS)->skipName(T_WHITESPACE);
+		$this->putInString($this->parent)->valueOf(T_STRING)->afterName(T_EXTENDS)->skipName(T_WHITESPACE);
+		$this->putInArray($this->interfaces)->valueOf(T_STRING)->afterName(T_IMPLEMENTS)->skipName(T_WHITESPACE)->skipValue(',');
+
+		parent::__construct($string);
+	}
 
 	public function canTokenize(tokenizer\tokens $tokens)
 	{
@@ -69,6 +83,16 @@ class phpClass extends php\tokenizer
 		}
 
 		return $this->setFromTokens($tokens);
+	}
+
+	public function getName()
+	{
+		return ($this->name ?: null);
+	}
+
+	public function getParent()
+	{
+		return ($this->parent ?: null);
 	}
 
 	public function getFunctions()

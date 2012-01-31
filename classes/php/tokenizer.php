@@ -11,6 +11,7 @@ class tokenizer implements \iteratorAggregate
 	protected $iterator = null;
 	protected $iterators = array();
 	protected $tokenizers = array();
+	protected $collectors = array();
 
 	private $started = false;
 
@@ -107,6 +108,11 @@ class tokenizer implements \iteratorAggregate
 	{
 		$this->iterator->append($tokens->current());
 
+		foreach ($this->collectors as $collector)
+		{
+			$collector->execute();
+		}
+
 		return $this;
 	}
 
@@ -127,6 +133,11 @@ class tokenizer implements \iteratorAggregate
 	{
 		$this->started = true;
 
+		foreach ($this->collectors as $collector)
+		{
+			$collector->from($tokens);
+		}
+
 		return $this;
 	}
 
@@ -138,6 +149,31 @@ class tokenizer implements \iteratorAggregate
 	protected function stop()
 	{
 		$this->started = false;
+
+		return $this;
+	}
+
+	protected function putInString(& $string)
+	{
+		$collector = new tokenizer\collector();
+
+		$this->addCollector($collector->inString($string));
+
+		return $collector;
+	}
+
+	protected function putInArray(& $array)
+	{
+		$collector = new tokenizer\collector();
+
+		$this->addCollector($collector->inArray($array));
+
+		return $collector;
+	}
+
+	private function addCollector(tokenizer\collector $collector)
+	{
+		$this->collectors[] = $collector;
 
 		return $this;
 	}
