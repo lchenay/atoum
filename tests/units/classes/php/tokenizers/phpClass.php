@@ -160,6 +160,28 @@ class phpClass extends atoum\test
 				->string($tokenizer->getParent())->isEqualTo('bar')
 		;
 	}
+
+	public function testGetInterfaces()
+	{
+		$this
+		->assert
+			->if($tokenizer = new tokenizers\phpClass())
+			->then
+				->array($tokenizer->getInterfaces())->isEmpty()
+		->assert
+			->if($tokenizer = new tokenizers\phpClass('<?php class foo {} ?>'))
+			->then
+				->array($tokenizer->getInterfaces())->isEmpty()
+		->assert
+			->if($tokenizer = new tokenizers\phpClass('<?php class foo implements iBar {} ?>'))
+			->then
+				->array($tokenizer->getInterfaces())->isEqualTo(array('iBar'))
+		->assert
+			->if($tokenizer = new tokenizers\phpClass('<?php class foo implements iBar, iFoo {} ?>'))
+			->then
+				->array($tokenizer->getInterfaces())->isEqualTo(array('iBar', 'iFoo'))
+		;
+	}
 }
 
 ?>
