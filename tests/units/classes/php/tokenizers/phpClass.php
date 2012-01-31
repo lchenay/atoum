@@ -60,6 +60,20 @@ class phpClass extends atoum\test
 		;
 	}
 
+	public function testTokenize()
+	{
+		$this->assert
+			->if($tokenizer = new tokenizers\phpClass())
+			->then
+				->object($tokenizer->tokenize(''))->isIdenticalTo($tokenizer)
+				->castToString($tokenizer->getIterator())->isEmpty()
+				->object($tokenizer->tokenize('class foo {}'))->isIdenticalTo($tokenizer)
+				->castToString($tokenizer->getIterator())->isEmpty()
+				->object($tokenizer->tokenize('<?php class foo {} ?>'))->isIdenticalTo($tokenizer)
+				->castToString($tokenizer->getIterator())->isEqualTo('class foo {}')
+		;
+	}
+
 	public function testSetFromTokens()
 	{
 		$this->assert

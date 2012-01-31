@@ -19,9 +19,9 @@ class phpClass extends php\tokenizer
 
 	public function __construct($string = null)
 	{
-		$this->putInString($this->name)->valueOf(T_STRING)->afterName(T_CLASS)->skipName(T_WHITESPACE);
-		$this->putInString($this->parent)->valueOf(T_STRING)->afterName(T_EXTENDS)->skipName(T_WHITESPACE);
-		$this->putInArray($this->interfaces)->valueOf(T_STRING)->afterName(T_IMPLEMENTS)->skipName(T_WHITESPACE)->skipValue(',');
+		$this->putInString($this->name)->valueOfToken(T_STRING)->afterToken(T_CLASS)->skipToken(T_WHITESPACE);
+		$this->putInString($this->parent)->valueOfToken(T_STRING)->afterToken(T_EXTENDS)->skipToken(T_WHITESPACE);
+		$this->putInArray($this->interfaces)->valueOfToken(T_STRING)->afterToken(T_IMPLEMENTS)->skipToken(T_WHITESPACE)->skipValue(',');
 
 		parent::__construct($string);
 	}

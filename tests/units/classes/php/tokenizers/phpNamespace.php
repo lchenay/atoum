@@ -36,6 +36,20 @@ class phpNamespace extends atoum\test
 		;
 	}
 
+	public function testTokenize()
+	{
+		$this->assert
+			->if($tokenizer = new tokenizers\phpNamespace())
+			->then
+				->object($tokenizer->tokenize(''))->isIdenticalTo($tokenizer)
+				->castToString($tokenizer->getIterator())->isEmpty()
+				->object($tokenizer->tokenize('namespace foo;'))->isIdenticalTo($tokenizer)
+				->castToString($tokenizer->getIterator())->isEmpty()
+				->object($tokenizer->tokenize('<?php namespace foo; ?>'))->isIdenticalTo($tokenizer)
+				->castToString($tokenizer->getIterator())->isEqualTo('namespace foo; ')
+		;
+	}
+
 	public function testSetFromTokens()
 	{
 		$this->assert
@@ -82,6 +96,25 @@ class phpNamespace extends atoum\test
 				->object($tokenizer->getIteratorInstance())->isEqualTo(new tokenizers\phpNamespace\iterator())
 		;
 	}
+
+	public function testGetName()
+	{
+		$this
+		->assert
+			->if($tokenizer = new tokenizers\phpNamespace())
+			->then
+				->variable($tokenizer->getName())->isNull()
+		->assert
+			->if($tokenizer = new tokenizers\phpNamespace('<?php namespace foo; ?>'))
+			->then
+				->string($tokenizer->getName())->isEqualTo('foo')
+		->assert
+			->if($tokenizer = new tokenizers\phpNamespace('<?php namespace foo\bar; ?>'))
+			->then
+				->string($tokenizer->getName())->isEqualTo('foo\bar')
+		;
+	}
+
 }
 
 ?>

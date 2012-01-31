@@ -27,8 +27,10 @@ class collector extends atoum\test
 		->assert
 			->if($collector = new tokenizer\collector())
 			->then
-				->object($collector->valueOf(T_STRING))->isIdenticalTo($collector)
-				->variable($collector->getValueOf())->isIdenticalTo(T_STRING)
+				->object($collector->valueOfToken(T_STRING))->isIdenticalTo($collector)
+				->variable($collector->getValueOfTokens())->isIdenticalTo(array(T_STRING))
+				->object($collector->valueOfToken(T_NS_SEPARATOR))->isIdenticalTo($collector)
+				->variable($collector->getValueOfTokens())->isIdenticalTo(array(T_STRING, T_NS_SEPARATOR))
 		;
 	}
 
@@ -38,7 +40,7 @@ class collector extends atoum\test
 		->assert
 			->if($collector = new tokenizer\collector())
 			->then
-				->object($collector->afterName(T_STRING))->isIdenticalTo($collector)
+				->object($collector->afterToken(T_STRING))->isIdenticalTo($collector)
 				->variable($collector->getAfterName())->isIdenticalTo(T_STRING)
 		;
 	}
@@ -82,11 +84,11 @@ class collector extends atoum\test
 		->assert
 			->if($collector = new tokenizer\collector())
 			->then
-				->object($collector->skipName(T_STRING))->isIdenticalTo($collector)
+				->object($collector->skipToken(T_STRING))->isIdenticalTo($collector)
 				->array($collector->getSkippedNames())->isEqualTo(array(T_STRING))
-				->object($collector->skipName(T_STRING))->isIdenticalTo($collector)
+				->object($collector->skipToken(T_STRING))->isIdenticalTo($collector)
 				->array($collector->getSkippedNames())->isEqualTo(array(T_STRING))
-				->object($collector->skipName(T_WHITESPACE))->isIdenticalTo($collector)
+				->object($collector->skipToken(T_WHITESPACE))->isIdenticalTo($collector)
 				->array($collector->getSkippedNames())->isEqualTo(array(T_STRING, T_WHITESPACE))
 		;
 	}
@@ -132,9 +134,9 @@ class collector extends atoum\test
 			->if($tokens->next())
 			->then
 				->object($collector->execute())->isIdenticalTo($collector)
-				->string($string)->isEqualTo('function')
+				->string($string)->isEqualTo('<?php function')
 		->assert("It's possible to collect a token after a specific token")
-			->if($collector->afterName(T_OPEN_TAG))
+			->if($collector->afterToken(T_OPEN_TAG))
 			->and($string = null)
 			->and($tokens->rewind())
 			->then
@@ -147,14 +149,14 @@ class collector extends atoum\test
 			->if($tokens->next())
 			->then
 				->object($collector->execute())->isIdenticalTo($collector)
-				->string($string)->isEqualTo('function')
+				->string($string)->isEqualTo('function ')
 		->assert("It's possible to collect a token of a specific name after a specific token")
 			->if($string = null)
 			->and($tokens->rewind())
 			->and($collector->from($tokens))
-			->and($collector->valueOf(T_STRING))
-			->and($collector->afterName(T_FUNCTION))
-			->and($collector->skipName(T_WHITESPACE))
+			->and($collector->valueOfToken(T_STRING))
+			->and($collector->afterToken(T_FUNCTION))
+			->and($collector->skipToken(T_WHITESPACE))
 			->then
 				->object($collector->execute())->isIdenticalTo($collector)
 				->variable($string)->isNull()
@@ -186,11 +188,11 @@ class collector extends atoum\test
 				->object($collector->execute())->isIdenticalTo($collector)
 				->array($array)->isEqualTo(array('<?php ', 'class'))
 			->if($tokens->rewind())
-			->and($collector->afterName(T_IMPLEMENTS))
-			->and($collector->valueOf(T_STRING))
+			->and($collector->afterToken(T_IMPLEMENTS))
+			->and($collector->valueOfToken(T_STRING))
 			->and($collector->inArray($array))
 			->and($collector->skipValue(','))
-			->and($collector->skipName(T_WHITESPACE))
+			->and($collector->skipToken(T_WHITESPACE))
 			->then
 				->object($collector->execute())->isIdenticalTo($collector)
 				->array($array)->isEmpty()
@@ -250,6 +252,38 @@ class collector extends atoum\test
 			->then
 				->object($collector->execute())->isIdenticalTo($collector)
 				->array($array)->isEqualTo(array('iFoo', 'iBar'))
+		->assert("It's possible to collect several pecific tokens")
+			->if($collector = new tokenizer\collector())
+			->and($collector->from($tokens = new tokenizer\tokens('<?php namespace foo\bar; ?>')))
+			->and($collector->inString($string))
+			->and($collector->afterToken(T_NAMESPACE))
+			->and($collector->valueOfToken(T_STRING))
+			->and($collector->valueOfToken(T_NS_SEPARATOR))
+			->and($collector->skipToken(T_WHITESPACE))
+			->and($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEmpty()
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEmpty()
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo\\')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo\\bar')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo\\bar')
 		;
 	}
 }

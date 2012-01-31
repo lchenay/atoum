@@ -8,12 +8,12 @@ use
 
 class collector
 {
-	protected $valueOf = null;
-	protected $afterName = null;
+	protected $valueOfTokens = array();
+	protected $afterToken = null;
 	protected $from = null;
 	protected $variable = null;
 	protected $variableIsSet = false;
-	protected $skippedNames = array();
+	protected $skippedTokens = array();
 	protected $skippedValues = array();
 
 	private $useNextValue = true;
@@ -23,21 +23,21 @@ class collector
 		return ($this->from !== null && $this->from->valid() === true && $this->variableIsSet !== false);
 	}
 
-	public function valueOf($tokenName)
+	public function valueOfToken($tokenName)
 	{
-		$this->valueOf = $tokenName;
+		$this->valueOfTokens[] = $tokenName;
 
 		return $this;
 	}
 
-	public function getValueOf()
+	public function getValueOfTokens()
 	{
-		return $this->valueOf;
+		return $this->valueOfTokens;
 	}
 
-	public function afterName($tokenName)
+	public function afterToken($tokenName)
 	{
-		$this->afterName = $tokenName;
+		$this->afterToken = $tokenName;
 		$this->useNextValue = false;
 
 		return $this;
@@ -45,7 +45,7 @@ class collector
 
 	public function getAfterName()
 	{
-		return $this->afterName;
+		return $this->afterToken;
 	}
 
 	public function from(tokenizer\tokens $tokens)
@@ -80,18 +80,18 @@ class collector
 		return $this->variable;
 	}
 
-	public function skipName($tokenName)
+	public function skipToken($tokenName)
 	{
-		$this->skippedNames[] = $tokenName;
+		$this->skippedTokens[] = $tokenName;
 
-		$this->skippedNames = array_unique($this->skippedNames);
+		$this->skippedTokens = array_unique($this->skippedTokens);
 
 		return $this;
 	}
 
 	public function getSkippedNames()
 	{
-		return $this->skippedNames;
+		return $this->skippedTokens;
 	}
 
 	public function skipValue($tokenValue)
@@ -112,9 +112,9 @@ class collector
 	{
 		if ($this->canCollect() === true)
 		{
-			if ($this->afterName !== null && $this->useNextValue === false)
+			if ($this->afterToken !== null && $this->useNextValue === false)
 			{
-				$this->useNextValue = $this->from->currentTokenHasName($this->afterName);
+				$this->useNextValue = $this->from->currentTokenHasName($this->afterToken);
 			}
 			else
 			{
@@ -122,9 +122,9 @@ class collector
 				$currentTokenName = $currentToken->getName();
 				$currentTokenValue = $currentToken->getValue();
 
-				if (in_array($currentTokenName, $this->skippedNames) === false && in_array($currentTokenValue, $this->skippedValues) === false)
+				if (in_array($currentTokenName, $this->skippedTokens, true) === false && in_array($currentTokenValue, $this->skippedValues, true) === false)
 				{
-					if ($this->valueOf !== null && $this->valueOf !== $currentTokenName)
+					if (sizeof($this->valueOfTokens) > 0 && in_array($currentTokenName, $this->valueOfTokens, true) === false)
 					{
 						$this->from = null;
 					}
@@ -134,12 +134,7 @@ class collector
 					}
 					else
 					{
-						$this->variable = $currentTokenValue;
-
-						if ($this->afterName !== null)
-						{
-							$this->from = null;
-						}
+						$this->variable .= $currentTokenValue;
 					}
 				}
 			}

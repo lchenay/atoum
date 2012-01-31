@@ -10,8 +10,20 @@ use
 
 class phpNamespace extends php\tokenizer
 {
+	protected $name = null;
 	protected $stack = null;
 	protected $hasCurlyBrace = false;
+
+	public function __construct($string = null)
+	{
+		$this->putInString($this->name)
+			->valueOfToken(T_STRING)
+			->valueOfToken(T_NS_SEPARATOR)
+				->afterToken(T_NAMESPACE)
+				->skipToken(T_WHITESPACE);
+
+		parent::__construct($string);
+	}
 
 	public function canTokenize(tokenizer\tokens $tokens)
 	{
@@ -22,9 +34,26 @@ class phpNamespace extends php\tokenizer
 		return $canTokenize;
 	}
 
+	public function tokenize($string)
+	{
+		$tokens = new tokenizer\tokens($string);
+
+		if ($tokens->valid() === true && $tokens->current()->getName() === T_OPEN_TAG)
+		{
+			$tokens->next();
+		}
+
+		return $this->setFromTokens($tokens);
+	}
+
 	public function getIteratorInstance()
 	{
 		return new phpNamespace\iterator();
+	}
+
+	public function getName()
+	{
+		return ($this->name ?: null);
 	}
 
 	protected function appendCurrentToken(tokenizer\tokens $tokens)
