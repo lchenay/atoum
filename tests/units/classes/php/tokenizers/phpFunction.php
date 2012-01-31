@@ -17,6 +17,25 @@ class phpFunction extends atoum\test
 		$this->assert->testedClass->isSubclassOf('mageekguy\atoum\php\tokenizer');
 	}
 
+	public function test__construct()
+	{
+		$this->assert
+			->if($tokenizer = new tokenizers\phpFunction())
+			->then
+				->variable($tokenizer->getName())->isNull()
+		;
+	}
+
+	public function testGetName()
+	{
+		$this
+		->assert
+			->if($tokenizer = new tokenizers\phpFunction('<?php function foo {} ?>'))
+			->then
+				->string($tokenizer->getName())->isEqualTo('foo')
+		;
+	}
+
 	public function testCanTokenize()
 	{
 		$this->assert

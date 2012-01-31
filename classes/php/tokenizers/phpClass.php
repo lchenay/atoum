@@ -12,16 +12,37 @@ class phpClass extends php\tokenizer
 {
 	protected $name = null;
 	protected $parent = null;
+	protected $interfaces = array();
 
 	private $stack = null;
-	private $nextTokenIsName = false;
-	private $nextTokenIsParent = false;
 
 	public function __construct($string = null)
 	{
-		$this->putInString($this->name)->valueOfToken(T_STRING)->afterToken(T_CLASS)->skipToken(T_WHITESPACE);
-		$this->putInString($this->parent)->valueOfToken(T_STRING)->afterToken(T_EXTENDS)->skipToken(T_WHITESPACE);
-		$this->putInArray($this->interfaces)->valueOfToken(T_STRING)->afterToken(T_IMPLEMENTS)->skipToken(T_WHITESPACE)->skipValue(',');
+		$this->putInString($this->name)
+			->valueOfToken(T_STRING)
+				->afterToken(T_CLASS)
+				->beforeToken(T_IMPLEMENTS)
+				->beforeToken(T_EXTENDS)
+				->beforeValue('{')
+					->skipToken(T_WHITESPACE)
+		;
+
+		$this->putInString($this->parent)
+			->valueOfToken(T_STRING)
+				->afterToken(T_EXTENDS)
+				->beforeToken(T_IMPLEMENTS)
+				->beforeValue('{')
+					->skipToken(T_WHITESPACE)
+		;
+
+		$this->putInArray($this->interfaces)
+			->valueOfToken(T_STRING)
+				->afterToken(T_IMPLEMENTS)
+				->beforeToken(T_EXTENDS)
+				->beforeValue('{')
+					->skipToken(T_WHITESPACE)
+					->skipValue(',')
+		;
 
 		parent::__construct($string);
 	}
@@ -95,9 +116,28 @@ class phpClass extends php\tokenizer
 		return ($this->parent ?: null);
 	}
 
+	public function getInterfaces()
+	{
+		return $this->interfaces;
+	}
+
 	public function getFunctions()
 	{
 		return $this->getIterators(phpClass\phpFunction\iterator::type);
+	}
+
+	public function getIteratorInstance()
+	{
+		return new phpClass\iterator();
+	}
+
+	protected function start(tokenizer\tokens $tokens)
+	{
+		$this->name = null;
+		$this->parent = null;
+		$this->interfaces = array();
+
+		return parent::start($tokens);
 	}
 
 	protected function appendCurrentToken(tokenizer\tokens $tokens)
@@ -122,11 +162,6 @@ class phpClass extends php\tokenizer
 		}
 
 		return $this;
-	}
-
-	public function getIteratorInstance()
-	{
-		return new phpClass\iterator();
 	}
 }
 

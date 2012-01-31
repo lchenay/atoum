@@ -34,14 +34,36 @@ class collector extends atoum\test
 		;
 	}
 
-	public function testAfterName()
+	public function testAfterToken()
 	{
 		$this
 		->assert
 			->if($collector = new tokenizer\collector())
 			->then
 				->object($collector->afterToken(T_STRING))->isIdenticalTo($collector)
-				->variable($collector->getAfterName())->isIdenticalTo(T_STRING)
+				->array($collector->getAfterTokens())->isEqualTo(array(T_STRING))
+		;
+	}
+
+	public function testBeforeToken()
+	{
+		$this
+		->assert
+			->if($collector = new tokenizer\collector())
+			->then
+				->object($collector->beforeToken(T_STRING))->isIdenticalTo($collector)
+				->array($collector->getBeforeTokens())->isEqualTo(array(T_STRING))
+		;
+	}
+
+	public function testBeforeValue()
+	{
+		$this
+		->assert
+			->if($collector = new tokenizer\collector())
+			->then
+				->object($collector->beforeValue('{'))->isIdenticalTo($collector)
+				->array($collector->getBeforeValues())->isEqualTo(array('{'))
 		;
 	}
 
@@ -251,8 +273,8 @@ class collector extends atoum\test
 			->if($tokens->next())
 			->then
 				->object($collector->execute())->isIdenticalTo($collector)
-				->array($array)->isEqualTo(array('iFoo', 'iBar'))
-		->assert("It's possible to collect several pecific tokens")
+				->array($array)->isEqualTo(array('iFoo', 'iBar', 'toto'))
+		->assert("It's possible to collect several specific tokens")
 			->if($collector = new tokenizer\collector())
 			->and($collector->from($tokens = new tokenizer\tokens('<?php namespace foo\bar; ?>')))
 			->and($collector->inString($string))
@@ -284,6 +306,88 @@ class collector extends atoum\test
 			->then
 				->object($collector->execute())->isIdenticalTo($collector)
 				->string($string)->isEqualTo('foo\\bar')
+		->assert("It's possible to collect a specific token before a token")
+			->if($collector = new tokenizer\collector())
+			->and($collector->valueOfToken(T_STRING))
+			->and($collector->from($tokens = new tokenizer\tokens('<?php namespace foo; function bar() {} ?>')))
+			->and($collector->inString($string))
+			->and($collector->beforeToken(T_FUNCTION))
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEmpty()
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEmpty()
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEmpty()
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+		->assert("It's possible to collect a specific token before a value")
+			->if($collector = new tokenizer\collector())
+			->and($collector->valueOfToken(T_STRING))
+			->and($collector->from($tokens = new tokenizer\tokens('<?php namespace foo; function bar() {} ?>')))
+			->and($collector->inString($string))
+			->and($collector->beforeValue(';'))
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEmpty()
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEmpty()
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEmpty()
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
+			->if($tokens->next())
+			->then
+				->object($collector->execute())->isIdenticalTo($collector)
+				->string($string)->isEqualTo('foo')
 		;
 	}
 }

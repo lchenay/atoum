@@ -11,8 +11,9 @@ use
 class phpNamespace extends php\tokenizer
 {
 	protected $name = null;
-	protected $stack = null;
-	protected $hasCurlyBrace = false;
+
+	private $stack = null;
+	private $hasCurlyBrace = false;
 
 	public function __construct($string = null)
 	{
@@ -88,6 +89,13 @@ class phpNamespace extends php\tokenizer
 		}
 
 		return $this;
+	}
+
+	protected function start(tokenizer\tokens $tokens)
+	{
+		$this->name = null;
+
+		return parent::start($tokens);
 	}
 }
 

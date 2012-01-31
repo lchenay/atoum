@@ -10,6 +10,68 @@ use
 
 class phpFunction extends php\tokenizers\phpFunction
 {
+	protected $final = '';
+	protected $static = '';
+	protected $abstract = '';
+	protected $encapsulation = '';
+
+	public function __construct($string = null)
+	{
+		$this->putInString($this->encapsulation)
+			->valueOfToken(T_PUBLIC)
+			->valueOfToken(T_PROTECTED)
+			->valueOfToken(T_PRIVATE)
+			->beforeToken(T_FUNCTION)
+		;
+
+		$this->putInString($this->abstract)
+			->valueOfToken(T_ABSTRACT)
+			->beforeToken(T_FUNCTION)
+		;
+
+		$this->putInString($this->final)
+			->valueOfToken(T_FINAL)
+			->beforeToken(T_FUNCTION)
+		;
+
+		$this->putInString($this->static)
+			->valueOfToken(T_STATIC)
+			->beforeToken(T_FUNCTION)
+		;
+
+		parent::__construct($string);
+	}
+
+	public function isPublic()
+	{
+		return ($this->encapsulation === '' || $this->encapsulation === 'public');
+	}
+
+	public function isProtected()
+	{
+		return ($this->encapsulation === 'protected');
+	}
+
+	public function isPrivate()
+	{
+		return ($this->encapsulation === 'private');
+	}
+
+	public function isAbstract()
+	{
+		return ($this->abstract != '');
+	}
+
+	public function isFinal()
+	{
+		return ($this->final != '');
+	}
+
+	public function isStatic()
+	{
+		return ($this->static != '');
+	}
+
 	public function getIteratorInstance()
 	{
 		return new phpFunction\iterator();
@@ -72,6 +134,16 @@ class phpFunction extends php\tokenizers\phpFunction
 		}
 
 		return $canTokenize;
+	}
+
+	protected function start(tokenizer\tokens $tokens)
+	{
+		$this->final = '';
+		$this->static = '';
+		$this->abstract = '';
+		$this->encapsulation = '';
+
+		return parent::start($tokens);
 	}
 }
 

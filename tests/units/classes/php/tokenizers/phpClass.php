@@ -17,6 +17,18 @@ class phpClass extends atoum\test
 		$this->assert->testedClass->isSubclassOf('mageekguy\atoum\php\tokenizer');
 	}
 
+	public function test__construct()
+	{
+		$this->assert
+			->if($tokenizer = new tokenizers\phpClass())
+			->then
+				->variable($tokenizer->getName())->isNull()
+				->variable($tokenizer->getParent())->isNull()
+				->array($tokenizer->getInterfaces())->isEmpty()
+				->array($tokenizer->getFunctions())->isEmpty()
+		;
+	}
+
 	public function testCanTokenize()
 	{
 		$this->assert

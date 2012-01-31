@@ -9,14 +9,16 @@ use
 class collector
 {
 	protected $valueOfTokens = array();
-	protected $afterToken = null;
+	protected $beforeTokens = array();
+	protected $beforeValues = array();
+	protected $afterTokens = array();
 	protected $from = null;
 	protected $variable = null;
 	protected $variableIsSet = false;
 	protected $skippedTokens = array();
 	protected $skippedValues = array();
 
-	private $useNextValue = true;
+	private $isAfterToken = true;
 
 	public function canCollect()
 	{
@@ -35,17 +37,41 @@ class collector
 		return $this->valueOfTokens;
 	}
 
-	public function afterToken($tokenName)
+	public function beforeToken($tokenName)
 	{
-		$this->afterToken = $tokenName;
-		$this->useNextValue = false;
+		$this->beforeTokens[] = $tokenName;
 
 		return $this;
 	}
 
-	public function getAfterName()
+	public function getBeforeTokens()
 	{
-		return $this->afterToken;
+		return $this->beforeTokens;
+	}
+
+	public function beforeValue($tokenName)
+	{
+		$this->beforeValues[] = $tokenName;
+
+		return $this;
+	}
+
+	public function getBeforeValues()
+	{
+		return $this->beforeValues;
+	}
+
+	public function afterToken($tokenName)
+	{
+		$this->afterTokens[] = $tokenName;
+		$this->isAfterToken = false;
+
+		return $this;
+	}
+
+	public function getAfterTokens()
+	{
+		return $this->afterTokens;
 	}
 
 	public function from(tokenizer\tokens $tokens)
@@ -112,29 +138,36 @@ class collector
 	{
 		if ($this->canCollect() === true)
 		{
-			if ($this->afterToken !== null && $this->useNextValue === false)
+			$currentToken = $this->from->current();
+			$currentTokenName = $currentToken->getName();
+			$currentTokenValue = $currentToken->getValue();
+
+			if (sizeof($this->afterTokens) > 0 && $this->isAfterToken === false)
 			{
-				$this->useNextValue = $this->from->currentTokenHasName($this->afterToken);
+				$this->isAfterToken = in_array($currentTokenName, $this->afterTokens);
 			}
 			else
 			{
-				$currentToken = $this->from->current();
-				$currentTokenName = $currentToken->getName();
-				$currentTokenValue = $currentToken->getValue();
-
-				if (in_array($currentTokenName, $this->skippedTokens, true) === false && in_array($currentTokenValue, $this->skippedValues, true) === false)
+				if (
+						(sizeof($this->beforeTokens) > 0 && in_array($currentTokenName, $this->beforeTokens) === true)
+						||
+						(sizeof($this->beforeValues) > 0 && in_array($currentTokenValue, $this->beforeValues) === true)
+					)
 				{
-					if (sizeof($this->valueOfTokens) > 0 && in_array($currentTokenName, $this->valueOfTokens, true) === false)
+					$this->from = null;
+				}
+				else if (in_array($currentTokenName, $this->skippedTokens, true) === false && in_array($currentTokenValue, $this->skippedValues, true) === false)
+				{
+					if (sizeof($this->valueOfTokens) <= 0 || in_array($currentTokenName, $this->valueOfTokens, true) === true)
 					{
-						$this->from = null;
-					}
-					else if (is_array($this->variable) === true)
-					{
-						$this->variable[] = $currentTokenValue;
-					}
-					else
-					{
-						$this->variable .= $currentTokenValue;
+						if (is_array($this->variable) === true)
+						{
+							$this->variable[] = $currentTokenValue;
+						}
+						else
+						{
+							$this->variable .= $currentTokenValue;
+						}
 					}
 				}
 			}

@@ -10,7 +10,21 @@ use
 
 class phpFunction extends php\tokenizer
 {
+	protected $name = null;
+
 	private $stack = null;
+
+	public function __construct($string = null)
+	{
+		$this->putInString($this->name)->valueOfToken(T_STRING)->afterToken(T_FUNCTION)->skipToken(T_WHITESPACE);
+
+		parent::__construct($string);
+	}
+
+	public function getName()
+	{
+		return ($this->name ?: null);
+	}
 
 	public function canTokenize(php\tokenizer\tokens $tokens)
 	{
@@ -27,6 +41,18 @@ class phpFunction extends php\tokenizer
 		}
 
 		return $this->setFromTokens($tokens);
+	}
+
+	public function getIteratorInstance()
+	{
+		return new phpFunction\iterator();
+	}
+
+	protected function start(tokenizer\tokens $tokens)
+	{
+		$this->name = null;
+
+		return parent::start($tokens);
 	}
 
 	protected function appendCurrentToken(tokenizer\tokens $tokens)
@@ -51,11 +77,6 @@ class phpFunction extends php\tokenizer
 		}
 
 		return $this;
-	}
-
-	public function getIteratorInstance()
-	{
-		return new phpFunction\iterator();
 	}
 }
 
