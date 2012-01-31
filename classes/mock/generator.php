@@ -235,6 +235,7 @@ class generator implements atoum\adapter\aggregator
 						}
 
 						$parameters = join(', ', $parameters);
+						$mockControllerParameters = ($parameters == '' ? 'func_get_args()' : 'array(' . $parameters . ')');
 
 						if ($isConstructor === true)
 						{
@@ -254,23 +255,33 @@ class generator implements atoum\adapter\aggregator
 							$methodCode .= "\t\t" . '{' . PHP_EOL;
 							$methodCode .= "\t\t\t" . '$this->mockController->' . $methodName . ' = function() {};' . PHP_EOL;
 							$methodCode .= "\t\t" . '}' . PHP_EOL;
-							$methodCode .=	"\t\t" . ($isConstructor === true ? '' : 'return ') . '$this->mockController->invoke(\'' . $methodName . '\', array(' . $parameters . '));' . PHP_EOL;
+							$methodCode .=	"\t\t" . ($isConstructor === true ? '' : 'return ') . '$this->mockController->invoke(\'' . $methodName . '\', ' . $mockControllerParameters . ');' . PHP_EOL;
 						}
 						else
 						{
 							$methodCode .= "\t\t" . 'if (isset($this->getMockController()->' . $methodName . ') === true)' . PHP_EOL;
 							$methodCode .= "\t\t" . '{' . PHP_EOL;
-							$methodCode .= "\t\t\t" . ($isConstructor === true ? '' : 'return ') . '$this->mockController->invoke(\'' . $methodName . '\', array(' . $parameters . '));' . PHP_EOL;
+							$methodCode .= "\t\t\t" . ($isConstructor === true ? '' : 'return ') . '$this->mockController->invoke(\'' . $methodName . '\', ' . $mockControllerParameters . ');' . PHP_EOL;
 							$methodCode .= "\t\t" . '}' . PHP_EOL;
 							$methodCode .= "\t\t" . 'else' . PHP_EOL;
 							$methodCode .= "\t\t" . '{' . PHP_EOL;
 
 							if ($isConstructor === false)
 							{
-								$methodCode .= "\t\t\t" . '$this->getMockController()->addCall(\'' . $methodName . '\', array(' . $parameters . '));' . PHP_EOL;
+								$methodCode .= "\t\t\t" . '$this->getMockController()->addCall(\'' . $methodName . '\', ' . $mockControllerParameters . ');' . PHP_EOL;
 							}
 
-							$methodCode .= "\t\t\t" . ($isConstructor === true ? '' : 'return ') . 'parent::' . $methodName . '(' . $parameters . ');' . PHP_EOL;
+							if ($parameters == '')
+							{
+								$parentMethodCall = 'call_user_func_array(\'parent::' . $methodName . '\', func_get_args())';
+							}
+							else
+							{
+								$parentMethodCall = 'parent::' . $methodName . '(' . $parameters . ')';
+							}
+
+							$methodCode .= "\t\t\t" . ($isConstructor === true ? '' : 'return ') . $parentMethodCall . ';' . PHP_EOL;
+
 							$methodCode .= "\t\t" . '}' . PHP_EOL;
 						}
 
@@ -284,21 +295,7 @@ class generator implements atoum\adapter\aggregator
 
 		if ($hasConstructor === false)
 		{
-			$mockedMethods .= "\t" . 'public function __construct(\\' . __NAMESPACE__ . '\\controller $mockController = null)' . PHP_EOL;
-			$mockedMethods .= "\t" . '{' . PHP_EOL;
-			$mockedMethods .= "\t\t" . 'if ($mockController === null)' . PHP_EOL;
-			$mockedMethods .= "\t\t" . '{' . PHP_EOL;
-			$mockedMethods .= "\t\t\t" . '$mockController = \mageekguy\atoum\mock\controller::get();' . PHP_EOL;
-			$mockedMethods .= "\t\t" . '}' . PHP_EOL;
-			$mockedMethods .= "\t\t" . 'if ($mockController !== null)' . PHP_EOL;
-			$mockedMethods .= "\t\t" . '{' . PHP_EOL;
-			$mockedMethods .= "\t\t\t" . '$this->setMockController($mockController);' . PHP_EOL;
-			$mockedMethods .= "\t\t" . '}' . PHP_EOL;
-			$mockedMethods .= "\t\t" . 'if (isset($this->getMockController()->__construct) === true)' . PHP_EOL;
-			$mockedMethods .= "\t\t" . '{' . PHP_EOL;
-			$mockedMethods .= "\t\t\t" . '$this->mockController->invoke(\'__construct\', array());' . PHP_EOL;
-			$mockedMethods .= "\t\t" . '}' . PHP_EOL;
-			$mockedMethods .= "\t" . '}' . PHP_EOL;
+			$mockedMethods .= self::generateDefaultConstructor();
 		}
 
 		return $mockedMethods;
@@ -446,12 +443,19 @@ class generator implements atoum\adapter\aggregator
 	{
 		$mockedMethods = '';
 
+		$hasConstructor = false;
+
 		foreach ($class->getMethods(\reflectionMethod::IS_PUBLIC) as $method)
 		{
 			if ($method->isFinal() === false && $method->isStatic() === false)
 			{
 				$methodName = $method->getName();
 				$isConstructor = $method->isConstructor();
+
+				if ($isConstructor === true)
+				{
+					$hasConstructor = true;
+				}
 
 				$parameters = array();
 
@@ -461,6 +465,7 @@ class generator implements atoum\adapter\aggregator
 				}
 
 				$parameters = join(', ', $parameters);
+				$mockControllerParameters = ($parameters == '' ? 'func_get_args()' : 'array(' . $parameters . ')');
 
 				$methodCode = "\t" . 'public function' . ($method->returnsReference() === false ? '' : ' &') . ' ' . $methodName . '(' . self::getParameters($method, $isConstructor) . ')' . PHP_EOL;
 				$methodCode .= "\t" . '{' . PHP_EOL;
@@ -471,18 +476,26 @@ class generator implements atoum\adapter\aggregator
 					$methodCode .= "\t\t" . '{' . PHP_EOL;
 					$methodCode .= "\t\t\t" . '$mockController = \mageekguy\atoum\mock\controller::get();' . PHP_EOL;
 					$methodCode .= "\t\t" . '}' . PHP_EOL;
-					$methodCode .= "\t\t" . '$this->setMockController($mockController);' . PHP_EOL;
+					$methodCode .= "\t\t" . 'if ($mockController !== null)' . PHP_EOL;
+					$methodCode .= "\t\t" . '{' . PHP_EOL;
+					$methodCode .= "\t\t\t" . '$this->setMockController($mockController);' . PHP_EOL;
+					$methodCode .= "\t\t" . '}' . PHP_EOL;
 				}
 
 				$methodCode .= "\t\t" . 'if (isset($this->getMockController()->' . $methodName . ') === false)' . PHP_EOL;
 				$methodCode .= "\t\t" . '{' . PHP_EOL;
 				$methodCode .= "\t\t\t" . '$this->mockController->' . $methodName . ' = function() {};' . PHP_EOL;
 				$methodCode .= "\t\t" . '}' . PHP_EOL;
-				$methodCode .=	"\t\t" . ($isConstructor === true ? '' : 'return ') . '$this->mockController->invoke(\'' . $methodName . '\', array(' . $parameters . '));' . PHP_EOL;
+				$methodCode .=	"\t\t" . ($isConstructor === true ? '' : 'return ') . '$this->mockController->invoke(\'' . $methodName . '\', ' . $mockControllerParameters . ');' . PHP_EOL;
 				$methodCode .= "\t" . '}' . PHP_EOL;
 
 				$mockedMethods .= $methodCode;
 			}
+		}
+
+		if ($hasConstructor === false)
+		{
+			$mockedMethods .= self::generateDefaultConstructor();
 		}
 
 		return $mockedMethods;
@@ -497,6 +510,27 @@ class generator implements atoum\adapter\aggregator
 			self::generateInterfaceMethodCode($class) .
 			'}' . PHP_EOL .
 			'}'
+		;
+	}
+
+	protected static function generateDefaultConstructor()
+	{
+		return
+			  "\t" . 'public function __construct(\\' . __NAMESPACE__ . '\\controller $mockController = null)' . PHP_EOL
+			. "\t" . '{' . PHP_EOL
+			. "\t\t" . 'if ($mockController === null)' . PHP_EOL
+			. "\t\t" . '{' . PHP_EOL
+			. "\t\t\t" . '$mockController = \mageekguy\atoum\mock\controller::get();' . PHP_EOL
+			. "\t\t" . '}' . PHP_EOL
+			. "\t\t" . 'if ($mockController !== null)' . PHP_EOL
+			. "\t\t" . '{' . PHP_EOL
+			. "\t\t\t" . '$this->setMockController($mockController);' . PHP_EOL
+			. "\t\t" . '}' . PHP_EOL
+			. "\t\t" . 'if (isset($this->getMockController()->__construct) === true)' . PHP_EOL
+			. "\t\t" . '{' . PHP_EOL
+			. "\t\t\t" . '$this->mockController->invoke(\'__construct\', func_get_args());' . PHP_EOL
+			. "\t\t" . '}' . PHP_EOL
+			. "\t" . '}' . PHP_EOL
 		;
 	}
 }
