@@ -60,23 +60,21 @@ class phpUse extends php\tokenizer
 
 		switch (true)
 		{
+			case $tokens->currentTokenHasValue(','):
 			case $tokens->currentTokenHasValue(';'):
 				$this->namespaces[$this->namespace] = $this->alias ?: null;
 				$this->namespace = '';
 				$this->alias = '';
 				$this->as = false;
-				$this->stop();
+
+				if ($tokens->currentTokenHasValue(';') === true)
+				{
+					$this->stop();
+				}
 				break;
 
 			case $tokens->currentTokenHasName(T_AS):
 				$this->as = true;
-				break;
-
-			case $tokens->currentTokenHasValue(','):
-				$this->namespaces[$this->namespace] = $this->alias;
-				$this->namespace = '';
-				$this->alias = '';
-				$this->as = false;
 				break;
 		}
 

@@ -32,6 +32,9 @@ class phpUse extends atoum\test
 			->if($tokenizer->tokenize('<?php use foo\bar as foo; ?>'))
 			->then
 				->array($tokenizer->getNamespaces())->isEqualTo(array('foo\bar' => 'foo'))
+			->if($tokenizer->tokenize('<?php use foo\bar as foo, toto; ?>'))
+			->then
+				->array($tokenizer->getNamespaces())->isEqualTo(array('foo\bar' => 'foo', 'toto' => null))
 		;
 	}
 
