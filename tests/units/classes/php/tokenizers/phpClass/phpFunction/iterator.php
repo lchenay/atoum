@@ -1,25 +1,25 @@
 <?php
 
-namespace mageekguy\atoum\tests\units\php\tokenizers\phpFunction;
+namespace mageekguy\atoum\tests\units\php\tokenizers\phpClass\phpFunction;
 
-require __DIR__ . '/../../../../runner.php';
+require __DIR__ . '/../../../../../runner.php';
 
 use
 	mageekguy\atoum,
 	mageekguy\atoum\php\tokenizer,
-	mageekguy\atoum\php\tokenizers\phpFunction
+	mageekguy\atoum\php\tokenizers\phpClass\phpFunction
 ;
 
 class iterator extends atoum\test
 {
 	public function testClass()
 	{
-		$this->assert->testedClass->isSubclassOf('mageekguy\atoum\php\tokenizer\iterator');
+		$this->assert->testedClass->isSubclassOf('mageekguy\atoum\php\tokenizers\phpFunction\iterator');
 	}
 
 	public function testClassConstants()
 	{
-		$this->assert->string(phpFunction\iterator::type)->isEqualTo('function');
+		$this->assert->string(phpFunction\iterator::type)->isEqualTo('method');
 	}
 
 	public function test__construct()
@@ -36,7 +36,7 @@ class iterator extends atoum\test
 		$this->assert
 			->if($iterator = new phpFunction\iterator())
 			->then
-				->string($iterator->getType())->isEqualTo('function')
+				->string($iterator->getType())->isEqualTo('method')
 		;
 	}
 

@@ -108,10 +108,10 @@ class tokenizer implements \iteratorAggregate
 	{
 		$this->iterator->append($tokens->current());
 
-		foreach ($this->collectors as $collector)
-		{
-			$collector->execute();
-		}
+//		foreach ($this->collectors as $collector)
+//		{
+//			$collector->execute();
+//		}
 
 		return $this;
 	}
@@ -157,7 +157,7 @@ class tokenizer implements \iteratorAggregate
 	{
 		$collector = new tokenizer\collector();
 
-		$this->addCollector($collector->inString($string));
+		$this->addCollector($collector->putInString($string));
 
 		return $collector;
 	}
@@ -166,7 +166,7 @@ class tokenizer implements \iteratorAggregate
 	{
 		$collector = new tokenizer\collector();
 
-		$this->addCollector($collector->inArray($array));
+		$this->addCollector($collector->putInArray($array));
 
 		return $collector;
 	}

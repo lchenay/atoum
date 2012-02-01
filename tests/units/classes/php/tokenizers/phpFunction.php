@@ -26,16 +26,6 @@ class phpFunction extends atoum\test
 		;
 	}
 
-	public function testGetName()
-	{
-		$this
-		->assert
-			->if($tokenizer = new tokenizers\phpFunction('<?php function foo {} ?>'))
-			->then
-				->string($tokenizer->getName())->isEqualTo('foo')
-		;
-	}
-
 	public function testCanTokenize()
 	{
 		$this->assert

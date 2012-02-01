@@ -2,6 +2,10 @@
 
 namespace mageekguy\atoum\php\tokenizer;
 
+use
+	mageekguy\atoum\exceptions
+;
+
 class tokens extends \arrayIterator
 {
 	protected $skippedTokenNames = array();
@@ -12,7 +16,7 @@ class tokens extends \arrayIterator
 
 		foreach (token_get_all((string) $value) as $token)
 		{
-			$this->append(is_string($token) ? new token($token) : new token($token[1], $token[0]));
+			$this->append(self::getTokenInstance($token));
 		}
 	}
 
@@ -170,6 +174,11 @@ class tokens extends \arrayIterator
 		$skippedTokenNames = array_merge($this->skippedTokenNames, $skippedTokenNames);
 
 		return (sizeof($skippedTokenNames) <= 0 ? false : in_array($this->current()->getName(), $skippedTokenNames) === true);
+	}
+
+	protected static function getTokenInstance($value)
+	{
+		return (is_string($value) ? new token($value) : new token($value[1], $value[0]));
 	}
 }
 

@@ -13,8 +13,8 @@ class collector
 	protected $beforeValues = array();
 	protected $afterTokens = array();
 	protected $from = null;
-	protected $variable = null;
-	protected $variableIsSet = false;
+	protected $destination = null;
+	protected $destinationIsSet = false;
 	protected $skippedTokens = array();
 	protected $skippedValues = array();
 
@@ -22,7 +22,7 @@ class collector
 
 	public function canCollect()
 	{
-		return ($this->from !== null && $this->from->valid() === true && $this->variableIsSet !== false);
+		return ($this->from !== null && $this->from->valid() === true && $this->destinationIsSet !== false);
 	}
 
 	public function valueOfToken($tokenName)
@@ -86,24 +86,19 @@ class collector
 		return $this->from;
 	}
 
-	public function inString(& $string)
+	public function putInString(& $string)
 	{
 		return $this->setVariable($string = '');
 	}
 
-	public function & getInString()
-	{
-		return $this->variable;
-	}
-
-	public function inArray(& $array)
+	public function putInArray(& $array)
 	{
 		return $this->setVariable($array = array());
 	}
 
-	public function & getInArray()
+	public function & getDestination()
 	{
-		return $this->variable;
+		return $this->destination;
 	}
 
 	public function skipToken($tokenName)
@@ -136,7 +131,12 @@ class collector
 
 	public function execute()
 	{
-		if ($this->canCollect() === true)
+		if ($this->from !== null)
+		{
+			$this->from->rewind();
+		}
+
+		while ($this->canCollect() === true)
 		{
 			$currentToken = $this->from->current();
 			$currentTokenName = $currentToken->getName();
@@ -160,16 +160,21 @@ class collector
 				{
 					if (sizeof($this->valueOfTokens) <= 0 || in_array($currentTokenName, $this->valueOfTokens, true) === true)
 					{
-						if (is_array($this->variable) === true)
+						if (is_array($this->destination) === true)
 						{
-							$this->variable[] = $currentTokenValue;
+							$this->destination[] = $currentTokenValue;
 						}
 						else
 						{
-							$this->variable .= $currentTokenValue;
+							$this->destination .= $currentTokenValue;
 						}
 					}
 				}
+			}
+
+			if ($this->from !== null)
+			{
+				$this->from->next();
 			}
 		}
 
@@ -178,8 +183,8 @@ class collector
 
 	protected function setVariable(& $variable)
 	{
-		$this->variable = & $variable;
-		$this->variableIsSet = true;
+		$this->destination = & $variable;
+		$this->destinationIsSet = true;
 
 		return $this;
 	}

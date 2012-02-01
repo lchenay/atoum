@@ -96,25 +96,6 @@ class phpNamespace extends atoum\test
 				->object($tokenizer->getIteratorInstance())->isEqualTo(new tokenizers\phpNamespace\iterator())
 		;
 	}
-
-	public function testGetName()
-	{
-		$this
-		->assert
-			->if($tokenizer = new tokenizers\phpNamespace())
-			->then
-				->variable($tokenizer->getName())->isNull()
-		->assert
-			->if($tokenizer = new tokenizers\phpNamespace('<?php namespace foo; ?>'))
-			->then
-				->string($tokenizer->getName())->isEqualTo('foo')
-		->assert
-			->if($tokenizer = new tokenizers\phpNamespace('<?php namespace foo\bar; ?>'))
-			->then
-				->string($tokenizer->getName())->isEqualTo('foo\bar')
-		;
-	}
-
 }
 
 ?>

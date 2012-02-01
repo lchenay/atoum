@@ -10,8 +10,6 @@ use
 
 class phpFunction extends php\tokenizer
 {
-	protected $name = null;
-
 	private $stack = null;
 
 	public function __construct($string = null)

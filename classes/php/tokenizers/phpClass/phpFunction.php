@@ -42,36 +42,6 @@ class phpFunction extends php\tokenizers\phpFunction
 		parent::__construct($string);
 	}
 
-	public function isPublic()
-	{
-		return ($this->encapsulation === '' || $this->encapsulation === 'public');
-	}
-
-	public function isProtected()
-	{
-		return ($this->encapsulation === 'protected');
-	}
-
-	public function isPrivate()
-	{
-		return ($this->encapsulation === 'private');
-	}
-
-	public function isAbstract()
-	{
-		return ($this->abstract != '');
-	}
-
-	public function isFinal()
-	{
-		return ($this->final != '');
-	}
-
-	public function isStatic()
-	{
-		return ($this->static != '');
-	}
-
 	public function getIteratorInstance()
 	{
 		return new phpFunction\iterator();

@@ -9,6 +9,30 @@ use
 class iterator extends phpFunction\iterator
 {
 	const type = 'method';
+
+	public function isPublic()
+	{
+	}
+
+	public function isProtected()
+	{
+	}
+
+	public function isPrivate()
+	{
+	}
+
+	public function isAbstract()
+	{
+	}
+
+	public function isFinal()
+	{
+	}
+
+	public function isStatic()
+	{
+	}
 }
 
 ?>
