@@ -13,9 +13,10 @@ class asynchronous extends atoum\test
 	public function testHandleEvent()
 	{
 		$this
-			->if($factory = new atoum\factory())
-			->and($factory['mageekguy\atoum\adapter'] = $adapter = new atoum\test\adapter())
-			->if($report = new \mock\mageekguy\atoum\reports\asynchronous($factory))
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mock\mageekguy\atoum\reports\asynchronous'] = new atoum\depedencies())
+			->and($depedencies['mock\mageekguy\atoum\reports\asynchronous']['adapter'] = $adapter = new atoum\test\adapter())
+			->and($report = new \mock\mageekguy\atoum\reports\asynchronous($depedencies))
 			->then
 				->object($report->handleEvent(atoum\runner::runStop, new atoum\runner()))->isIdenticalTo($report)
 				->variable($report->getTitle())->isNull()

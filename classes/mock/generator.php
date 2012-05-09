@@ -11,27 +11,39 @@ class generator
 {
 	const defaultNamespace = 'mock';
 
-	protected $factory = null;
+	protected $depedencies = null;
 	protected $shuntedMethods = array();
 	protected $overloadedMethods = array();
 
 	private $defaultNamespace = null;
 
-	public function __construct(atoum\factory $factory = null)
+	public function __construct(atoum\depedencies $depedencies = null)
 	{
-		$this->setFactory($factory ?: new atoum\factory());
+		$this->setDepedencies($depedencies ?: new atoum\depedencies());
 	}
 
-	public function setFactory(atoum\factory $factory)
+	public function setDepedencies(atoum\depedencies $depedencies)
 	{
-		$this->factory = $factory;
+		$this->depedencies = $depedencies;
+
+		if (isset($this->depedencies[$this]) === false)
+		{
+			$this->depedencies[$this] = new atoum\depedencies();
+		}
+
+		$this->depedencies[$this]->lock();
+		$this->depedencies[$this]['adapter'] = function() { return new atoum\adapter(); };
+		$this->depedencies[$this]['reflection\class'] = function($class) { return new \reflectionClass($class); };
+		$this->depedencies[$this]->unlock();
+
+		return $this;
 
 		return $this;
 	}
 
-	public function getFactory()
+	public function getDepedencies()
 	{
-		return $this->factory;
+		return $this->depedencies;
 	}
 
 	public function setDefaultNamespace($namespace)
@@ -51,6 +63,11 @@ class generator
 		$this->overloadedMethods[$method->getName()] = $method;
 
 		return $this;
+	}
+
+	public function getOverloadedMethods()
+	{
+		return $this->overloadedMethods;
 	}
 
 	public function shunt($method)
@@ -90,7 +107,7 @@ class generator
 				$mockClass = self::getClassName($class);
 			}
 
-			$adapter = $this->factory['mageekguy\atoum\adapter']();
+			$adapter = $this->depedencies[$this]['adapter']();
 
 			if ($adapter->class_exists($mockNamespace . '\\' . $mockClass, false) === true || $adapter->interface_exists($mockNamespace . '\\' . $mockClass, false) === true)
 			{
@@ -103,7 +120,7 @@ class generator
 			}
 			else
 			{
-				$reflectionClass = $this->factory['reflectionClass']($class);
+				$reflectionClass = $this->depedencies[$this]['reflection\class']($class);
 
 				if ($reflectionClass->isFinal() === true)
 				{

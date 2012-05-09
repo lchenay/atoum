@@ -26,7 +26,7 @@ class phing extends atoum\test
 				->boolean($report->codeCoverageIsShowed())->isTrue()
 				->boolean($report->missingCodeCoverageIsShowed())->isTrue()
 				->boolean($report->progressIsShowed())->isTrue()
-				->object($report->getFactory())->isInstanceOf('mageekguy\atoum\factory')
+				->object($report->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
 		  ;
 	}
 }

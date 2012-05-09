@@ -25,7 +25,7 @@ class builder extends atoum\test
 		$this
 			->if($report = new reports\builder())
 			->then
-				->object($report->getFactory())->isInstanceOf('mageekguy\atoum\factory')
+				->object($report->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
 				->object($report->getLocale())->isInstanceOf('mageekguy\atoum\locale')
 				->object($report->getAdapter())->isInstanceOf('mageekguy\atoum\adapter')
 				->array($report->getFields())->isEqualTo(array(
@@ -77,12 +77,12 @@ class builder extends atoum\test
 						new test\memory\cli(new prompt('   '))
 					)
 				)
-			->if($factory = new atoum\factory())
-			->and($factory['mageekguy\atoum\locale'] = $locale = new atoum\locale())
-			->and($factory['mageekguy\atoum\adapter'] = $adapter = new atoum\adapter())
-			->and($report = new reports\builder($factory))
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\reports\asynchronous\builder']['locale'] = $locale = new atoum\locale())
+			->and($depedencies['mageekguy\atoum\reports\asynchronous\builder']['adapter'] = $adapter = new atoum\adapter())
+			->and($report = new reports\builder($depedencies))
 			->then
-				->object($report->getFactory())->isIdenticalTo($factory)
+				->object($report->getDepedencies())->isIdenticalTo($depedencies)
 				->object($report->getLocale())->isIdenticalTo($locale)
 				->object($report->getAdapter())->isIdenticalTo($adapter)
 				->array($report->getFields())->isEqualTo(array(

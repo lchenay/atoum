@@ -24,15 +24,6 @@ class depedencies extends atoum\test
 		;
 	}
 
-	public function test__invoke()
-	{
-		$this
-			->if($depedencies = new atoum\depedencies())
-			->then
-				->object($depedencies())->isIdenticalTo($depedencies)
-		;
-	}
-
 	public function testOffsetSet()
 	{
 		$this
@@ -66,6 +57,35 @@ class depedencies extends atoum\test
 					->object($depedencies[$key])->isIdenticalTo($injector)
 					->boolean(isset($depedencies[$otherKey]))->isTrue()
 					->object($depedencies[$otherKey])->isIdenticalTo($otherDepedencies)
+		;
+	}
+
+	public function testLock()
+	{
+		$this
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies[$key = uniqid()] = $injector = function() {})
+			->then
+				->object($depedencies->lock())->isIdenticalTo($depedencies)
+			->if($depedencies[$key] = $otherInjector = function() {})
+			->then
+				->object($depedencies[$key])->isIdenticalTo($injector)
+				->object($depedencies[$key])->isNotIdenticalTo($otherInjector)
+		;
+	}
+
+	public function testUnlock()
+	{
+		$this
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies[$key = uniqid()] = $injector = function() {})
+			->and($depedencies->lock())
+			->then
+				->object($depedencies->unlock())->isIdenticalTo($depedencies)
+			->if($depedencies[$key] = $otherInjector = function() {})
+			->then
+				->object($depedencies[$key])->isNotIdenticalTo($injector)
+				->object($depedencies[$key])->isIdenticalTo($otherInjector)
 		;
 	}
 }

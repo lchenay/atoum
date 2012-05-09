@@ -20,9 +20,7 @@ class runner extends atoum\test
 
 	public function testClassConstants()
 	{
-		$this->assert
-			->string(scripts\runner::defaultConfigFile)->isEqualTo('.atoum.php')
-		;
+		$this->string(scripts\runner::defaultConfigFile)->isEqualTo('.atoum.php');
 	}
 
 	public function test__construct()
@@ -35,10 +33,9 @@ class runner extends atoum\test
 				->object($scriptRunner->getAdapter())->isInstanceOf('mageekguy\atoum\adapter')
 				->object($scriptRunner->getIncluder())->isInstanceOf('mageekguy\atoum\includer')
 				->object($scriptRunner->getRunner())->isInstanceOf('mageekguy\atoum\runner')
-				->object($scriptRunner->getRunner()->getFactory())->isIdenticalTo($scriptRunner->getFactory())
-				->object($scriptRunner->getFactory()->build('mageekguy\atoum\locale'))->isIdenticalTo($scriptRunner->getLocale())
-				->object($scriptRunner->getFactory()->build('mageekguy\atoum\adapter'))->isIdenticalTo($scriptRunner->getAdapter())
-				->object($scriptRunner->getFactory()->build('mageekguy\atoum\includer'))->isIdenticalTo($scriptRunner->getIncluder())
+				->object($scriptRunner->getRunner()->getLocale())->isIdenticalTo($scriptRunner->getLocale())
+				->object($scriptRunner->getRunner()->getAdapter())->isIdenticalTo($scriptRunner->getAdapter())
+				->object($scriptRunner->getRunner()->getIncluder())->isIdenticalTo($scriptRunner->getIncluder())
 				->variable($scriptRunner->getScoreFile())->isNull()
 				->array($scriptRunner->getArguments())->isEmpty()
 				->array($scriptRunner->getHelp())->isEqualTo(array(
@@ -159,13 +156,12 @@ class runner extends atoum\test
 						)
 					)
 				)
-			->if($factory = new atoum\factory())
-			->and($factory->import('mageekguy\atoum'))
-			->and($factory['mageekguy\atoum\locale'] = $locale = new atoum\locale())
-			->and($factory['mageekguy\atoum\adapter'] = $adapter = new atoum\adapter())
-			->and($factory['mageekguy\atoum\runner'] = $runner = new atoum\runner())
-			->and($factory['mageekguy\atoum\includer'] = $includer = new atoum\includer())
-			->and($scriptRunner = new scripts\runner($name = uniqid(), $factory))
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\scripts\runner']['locale'] = $locale = new atoum\locale())
+			->and($depedencies['mageekguy\atoum\scripts\runner']['adapter'] = $adapter = new atoum\adapter())
+			->and($depedencies['mageekguy\atoum\scripts\runner']['runner'] = $runner = new atoum\runner())
+			->and($depedencies['mageekguy\atoum\scripts\runner']['includer'] = $includer = new atoum\includer())
+			->and($scriptRunner = new scripts\runner($name = uniqid(), $depedencies))
 			->then
 				->string($scriptRunner->getName())->isEqualTo($name)
 				->object($scriptRunner->getAdapter())->isIdenticalTo($adapter)
@@ -310,9 +306,9 @@ class runner extends atoum\test
 	public function testUseConfigFile()
 	{
 		$this
-			->if($factory = new atoum\factory())
-			->and($factory['mageekguy\atoum\locale'] = $locale = new \mock\mageekguy\atoum\locale())
-			->and($runner = new scripts\runner($name = uniqid(), $factory))
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\scripts\runner']['locale'] = $locale = new \mock\mageekguy\atoum\locale())
+			->and($runner = new scripts\runner($name = uniqid(), $depedencies))
 			->then
 				->exception(function() use ($runner, & $file) {
 						$runner->useConfigFile($file = uniqid());

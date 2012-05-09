@@ -12,7 +12,6 @@ class concurrent extends test\engine
 {
 	protected $test = null;
 	protected $method = '';
-	protected $factory = null;
 	protected $stdOut = '';
 	protected $stdErr = '';
 
@@ -20,11 +19,22 @@ class concurrent extends test\engine
 	private $php = null;
 	private $pipes = array();
 
-	public function __construct(atoum\factory $factory = null)
+	public function __construct(atoum\depedencies $depedencies = null)
 	{
-		parent::__construct($factory);
+		parent::__construct($depedencies);
 
-		$this->adapter = $this->factory['mageekguy\atoum\adapter']();
+		$this->adapter = $this->depedencies[$this]['adapter']();
+	}
+
+	public function setDepedencies(atoum\depedencies $depedencies)
+	{
+		parent::setDepedencies($depedencies);
+
+		$this->depedencies[$this]->lock();
+		$this->depedencies[$this]['adapter'] = function() { return new atoum\adapter(); };
+		$this->depedencies[$this]->unlock();
+
+		return $this;
 	}
 
 	public function isRunning()
@@ -142,7 +152,7 @@ class concurrent extends test\engine
 
 				if ($score instanceof atoum\score === false)
 				{
-					$score = $this->factory['mageekguy\atoum\score']($this->factory);
+					$score = $this->depedencies[$this]['score']($this->depedencies);
 
 					$score->addUncompletedMethod($this->test->getClass(), $this->method, $phpStatus['exitcode'], $this->stdOut);
 				}

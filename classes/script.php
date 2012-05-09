@@ -13,7 +13,7 @@ abstract class script implements atoum\adapter\aggregator
 	const padding = '   ';
 
 	protected $name = '';
-	protected $factory = null;
+	protected $depedencies = null;
 	protected $locale = null;
 	protected $adapter = null;
 	protected $outputWriter = null;
@@ -22,21 +22,18 @@ abstract class script implements atoum\adapter\aggregator
 	private $help = array();
 	private $argumentsParser = null;
 
-	public function __construct($name, atoum\factory $factory = null)
+	public function __construct($name, atoum\depedencies $depedencies = null)
 	{
 		$this->name = (string) $name;
 
 		$this
-			->setFactory($factory ?: new atoum\factory())
-			->setLocale($this->factory['atoum\locale']())
-			->setAdapter($this->factory['atoum\adapter']())
-			->setArgumentsParser($this->factory['atoum\script\arguments\parser']())
-			->setOutputWriter($this->factory['atoum\writers\std\out']())
-			->setErrorWriter($this->factory['atoum\writers\std\err']())
+			->setDepedencies($depedencies ?: new atoum\depedencies())
+			->setLocale($this->depedencies[$this]['locale']())
+			->setAdapter($this->depedencies[$this]['adapter']())
+			->setArgumentsParser($this->depedencies[$this]['arguments\parser']())
+			->setOutputWriter($this->depedencies[$this]['writers\output']())
+			->setErrorWriter($this->depedencies[$this]['writers\error']())
 		;
-
-		$this->factory['atoum\locale'] = $this->locale;
-		$this->factory['atoum\adapter'] = $this->adapter;
 
 		if ($this->adapter->php_sapi_name() !== 'cli')
 		{
@@ -44,16 +41,29 @@ abstract class script implements atoum\adapter\aggregator
 	 	}
 	}
 
-	public function setFactory(atoum\factory $factory)
+	public function setDepedencies(atoum\depedencies $depedencies)
 	{
-		$this->factory = $factory->import('mageekguy\atoum');
+		$this->depedencies = $depedencies;
+
+		if (isset($this->depedencies[$this]) === false)
+		{
+			$this->depedencies[$this] = new atoum\depedencies();
+		}
+
+		$this->depedencies[$this]->lock();
+		$this->depedencies[$this]['locale'] = function() { return new atoum\locale(); };
+		$this->depedencies[$this]['adapter'] = function() { return new atoum\adapter(); };
+		$this->depedencies[$this]['arguments\parser'] = function() { return new atoum\script\arguments\parser(); };
+		$this->depedencies[$this]['writers\output'] = function() { return new atoum\writers\std\out(); };
+		$this->depedencies[$this]['writers\error'] = function() { return new atoum\writers\std\err(); };
+		$this->depedencies[$this]->unlock();
 
 		return $this;
 	}
 
-	public function getFactory()
+	public function getDepedencies()
 	{
-		return $this->factory;
+		return $this->depedencies;
 	}
 
 	public function setOutputWriter(atoum\writer $writer)

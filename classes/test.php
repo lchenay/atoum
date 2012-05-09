@@ -30,13 +30,12 @@ abstract class test implements observable, adapter\aggregator, \countable
 	const afterTearDown = 'afterTestTearDown';
 	const runStop = 'testRunStop';
 	const defaultEngine = 'concurrent';
-	const enginesNamespace = '\mageekguy\atoum\test\engines';
 
 	private $phpPath = null;
 	private $path = '';
 	private $class = '';
 	private $testedClass = null;
-	private $factory = null;
+	private $depedencies = null;
 	private $adapter = null;
 	private $assertionManager = null;
 	private $asserterGenerator = null;
@@ -63,24 +62,24 @@ abstract class test implements observable, adapter\aggregator, \countable
 	private static $namespace = null;
 	private static $defaultEngine = self::defaultEngine;
 
-	public function __construct(factory $factory = null)
+	public function __construct(depedencies $depedencies = null)
 	{
 		$this
-			->setFactory($factory ?: new factory())
-			->setScore($this->factory['mageekguy\atoum\score']($this->factory))
-			->setLocale($this->factory['mageekguy\atoum\locale']())
-			->setAdapter($this->factory['mageekguy\atoum\adapter']())
-			->setSuperglobals($this->factory['mageekguy\atoum\superglobals']())
-			->setIncluder($this->factory['mageekguy\atoum\includer']())
+			->setDepedencies($depedencies ?: new depedencies())
+			->setScore($this->depedencies[$this]['score']($this->depedencies[$this]))
+			->setLocale($this->depedencies[$this]['locale']())
+			->setAdapter($this->depedencies[$this]['adapter']())
+			->setIncluder($this->depedencies[$this]['includer']())
+			->setSuperglobals($this->depedencies[$this]['superglobals']())
 			->enableCodeCoverage()
 		;
 
-		$class = $this->factory['reflectionClass']($this);
+		$class = $this->depedencies[$this]['reflection\class']($this);
 
 		$this->path = $class->getFilename();
 		$this->class = $class->getName();
 
-		$annotationExtractor = $this->factory['mageekguy\atoum\annotations\extractor']();
+		$annotationExtractor = $this->depedencies[$this]['annotations\extractor']();
 
 		$test = $this;
 
@@ -134,7 +133,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 				->setAlias('class', 'phpClass')
 		;
 
-		$this->setAssertionManager($this->factory['mageekguy\atoum\test\assertion\manager']());
+		$this->setAssertionManager($this->depedencies[$this]['assertion\manager']());
 	}
 
 	public function __toString()
@@ -152,16 +151,33 @@ abstract class test implements observable, adapter\aggregator, \countable
 		return $this->assertionManager->invoke($method, $arguments);
 	}
 
-	public function setFactory(factory $factory)
+	public function setDepedencies(depedencies $depedencies)
 	{
-		$this->factory = $factory;
+		$this->depedencies = $depedencies;
+
+		$this->depedencies[$this]->lock();
+		$this->depedencies[$this]['locale'] = function() { return new locale(); };
+		$this->depedencies[$this]['adapter'] = function() { return new adapter(); };
+		$this->depedencies[$this]['score'] = function($depedencies) { return new score(); };
+		$this->depedencies[$this]['includer'] = function() { return new includer(); };
+		$this->depedencies[$this]['superglobals'] = function() { return new superglobals(); };
+		$this->depedencies[$this]['reflection\class'] = function($class) { return new \reflectionClass($class); };
+		$this->depedencies[$this]['reflection\method'] = function($class, $method) { return new \reflectionMethod($class, $method); };
+		$this->depedencies[$this]['annotations\extractor'] = function() { return new annotations\extractor(); };
+		$this->depedencies[$this]['assertion\manager'] = function() { return new test\assertion\manager(); };
+		$this->depedencies[$this]['asserter\generator'] = function($test) { return new test\asserter\generator($test); };
+		$this->depedencies[$this]['mock\generator'] = function($test) { return new test\mock\generator($test); };
+		$this->depedencies[$this]['engines\concurrent'] = function($depedencies) { return new test\engines\concurrent($depedencies); };
+		$this->depedencies[$this]['engines\isolate'] = function($depedencies) { return new test\engines\isolate($depedencies); };
+		$this->depedencies[$this]['engines\inline'] = function($depedencies) { return new test\engines\inline($depedencies); };
+		$this->depedencies[$this]->unlock();
 
 		return $this;
 	}
 
-	public function getFactory()
+	public function getDepedencies()
 	{
-		return $this->factory;
+		return $this->depedencies;
 	}
 
 	public function setClassEngine($engine)
@@ -299,7 +315,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 	public function getMockGenerator()
 	{
-		return $this->mockGenerator ?: $this->setMockGenerator($this->factory['mageekguy\atoum\test\mock\generator']($this))->mockGenerator;
+		return $this->mockGenerator ?: $this->setMockGenerator($this->depedencies[$this]['mock\generator']($this))->mockGenerator;
 	}
 
 	public function setAsserterGenerator(test\asserter\generator $generator)
@@ -313,7 +329,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 	{
 		test\adapter::resetCallsForAllInstances();
 
-		return $this->asserterGenerator ?: $this->setAsserterGenerator($this->factory['mageekguy\atoum\test\asserter\generator']($this))->asserterGenerator;
+		return $this->asserterGenerator ?: $this->setAsserterGenerator($this->depedencies[$this]['asserter\generator']($this))->asserterGenerator;
 	}
 
 	public function setTestNamespace($testNamespace)
@@ -665,7 +681,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 							throw new test\exceptions\runtime('Data provider ' . $this->getClass() . '::' . $this->dataProviders[$testMethod] . '() must return an array or an iterator');
 						}
 
-						$reflectedTestMethod = $this->factory['reflectionMethod']($this, $testMethod);
+						$reflectedTestMethod = $this->depedencies[$this]['reflection\method']($this, $testMethod);
 						$numberOfArguments = $reflectedTestMethod->getNumberOfRequiredParameters();
 
 						foreach ($data as $key => $arguments)
@@ -998,12 +1014,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 		$engineClass = ($this->getMethodEngine($this->currentMethod) ?: $this->getClassEngine() ?: self::getDefaultEngine());
 
-		if (ltrim($engineClass, '\\') === $engineClass)
-		{
-			$engineClass = self::enginesNamespace . '\\' . $engineClass;
-		}
-
-		$engine = $this->factory[$engineClass]($this->factory);
+		$engine = $this->depedencies[$this]['engines\\' . $engineClass]($this->depedencies);
 
 		if ($engine instanceof test\engine === false)
 		{

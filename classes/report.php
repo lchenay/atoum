@@ -5,32 +5,42 @@ namespace mageekguy\atoum;
 class report implements observer, adapter\aggregator
 {
 	protected $title = null;
-	protected $factory = null;
+	protected $depedencies = null;
 	protected $locale = null;
 	protected $adapter = null;
 	protected $writers = array();
 	protected $fields = array();
 	protected $lastSetFields = array();
 
-	public function __construct(factory $factory = null)
+	public function __construct(depedencies $depedencies = null)
 	{
 		$this
-			->setFactory($factory ?: new factory())
-			->setLocale($this->factory['mageekguy\atoum\locale']())
-			->setAdapter($this->factory['mageekguy\atoum\adapter']())
+			->setDepedencies($depedencies ?: new depedencies())
+			->setLocale($this->depedencies[$this]['locale']())
+			->setAdapter($this->depedencies[$this]['adapter']())
 		;
 	}
 
-	public function setFactory(factory $factory)
+	public function setDepedencies(depedencies $depedencies)
 	{
-		$this->factory = $factory;
+		$this->depedencies = $depedencies;
+
+		if (isset($this->depedencies[$this]) === false)
+		{
+			$this->depedencies[$this] = new depedencies();
+		}
+
+		$this->depedencies[$this]->lock();
+		$this->depedencies[$this]['locale'] = function() { return new locale(); };
+		$this->depedencies[$this]['adapter'] = function() { return new adapter(); };
+		$this->depedencies[$this]->unlock();
 
 		return $this;
 	}
 
-	public function getFactory()
+	public function getDepedencies()
 	{
-		return $this->factory;
+		return $this->depedencies;
 	}
 
 	public function setTitle($title)

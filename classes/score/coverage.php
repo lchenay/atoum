@@ -10,7 +10,7 @@ use
 
 class coverage implements \countable
 {
-	protected $factory = null;
+	protected $depedencies = null;
 	protected $classes = array();
 	protected $lines = array();
 	protected $methods = array();
@@ -18,21 +18,30 @@ class coverage implements \countable
 	protected $excludedNamespaces = array();
 	protected $excludedDirectories = array();
 
-	public function __construct(atoum\factory $factory = null)
+	public function __construct(atoum\depedencies $depedencies = null)
 	{
-		$this->setFactory($factory ?: new atoum\factory());
+		$this->setDepedencies($depedencies ?: new atoum\depedencies());
 	}
 
-	public function setFactory(atoum\factory $factory)
+	public function setDepedencies(atoum\depedencies $depedencies)
 	{
-		$this->factory = $factory;
+		$this->depedencies = $depedencies;
+
+		if (isset($this->depedencies[$this]) === false)
+		{
+			$this->depedencies[$this] = new atoum\depedencies();
+		}
+
+		$this->depedencies[$this]->lock();
+		$this->depedencies[$this]['reflection\class'] = function($class) { return new \reflectionClass($class); };
+		$this->depedencies[$this]->unlock();
 
 		return $this;
 	}
 
-	public function getFactory()
+	public function getDepedencies()
 	{
-		return $this->factory;
+		return $this->depedencies;
 	}
 
 	public function reset()
@@ -63,7 +72,7 @@ class coverage implements \countable
 		{
 			try
 			{
-				$reflectedClass = $this->factory['reflectionClass']($class);
+				$reflectedClass = $this->depedencies[$this]['reflection\class']($class);
 
 				if ($this->isExcluded($reflectedClass) === false)
 				{

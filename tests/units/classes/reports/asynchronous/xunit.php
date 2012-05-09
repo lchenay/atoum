@@ -29,24 +29,29 @@ class xunit extends atoum\test
 			->if($report = new reports\xunit())
 			->then
 				->array($report->getFields(atoum\runner::runStart))->isEmpty()
-				->object($report->getFactory())->isInstanceOf('mageekguy\atoum\factory')
+				->object($depedencies = $report->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+				->boolean(isset($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['locale']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['adapter']))->isTrue()
 				->object($report->getLocale())->isInstanceOf('mageekguy\atoum\locale')
 				->object($report->getAdapter())->isInstanceOf('mageekguy\atoum\adapter')
-			->if($factory = new atoum\factory())
-			->and($factory['mageekguy\atoum\locale'] = $locale = new atoum\locale())
-			->and($factory['mageekguy\atoum\adapter'] = $adapter = new atoum\test\adapter())
+			->if($adapter = new atoum\test\adapter())
 			->and($adapter->extension_loaded = true)
-			->and($report = new reports\xunit($factory))
+			->and($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['locale'] = $localeInjector = function() use (& $locale) { return $locale = new atoum\locale(); })
+			->and($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['adapter'] = $adapterInjector = function() use ($adapter) { return $adapter; })
+			->and($report = new reports\xunit($depedencies))
 			->then
-				->object($report->getFactory())->isIdenticalTo($factory)
+				->object($report->getDepedencies())->isIdenticalTo($depedencies)
+				->object($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['locale'])->isIdenticalTo($localeInjector)
+				->object($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['adapter'])->isIdenticalTo($adapterInjector)
 				->object($report->getLocale())->isIdenticalTo($locale)
 				->object($report->getAdapter())->isIdenticalTo($adapter)
 				->array($report->getFields())->isEmpty()
 				->adapter($adapter)->call('extension_loaded')->withArguments('libxml')->once()
 			->if($adapter->extension_loaded = false)
 			->then
-				->exception(function() use ($factory) {
-								new reports\xunit($factory);
+				->exception(function() use ($depedencies) {
+								new reports\xunit($depedencies);
 							}
 						)
 				->isInstanceOf('mageekguy\atoum\exceptions\runtime')

@@ -11,11 +11,11 @@ class isolate extends engines\concurrent
 {
 	protected $score = null;
 
-	public function __construct(atoum\factory $factory = null)
+	public function __construct(atoum\depedencies $depedencies = null)
 	{
-		parent::__construct($factory);
+		parent::__construct($depedencies);
 
-		$this->score = $this->factory['mageekguy\atoum\score']();
+		$this->score = $this->depedencies[$this]['score']($this->depedencies);
 	}
 
 	public function run(atoum\test $test)

@@ -10,7 +10,7 @@ use
 
 class score
 {
-	private $factory = null;
+	private $depedencies = null;
 	private $passAssertions = 0;
 	private $failAssertions = array();
 	private $exceptions = array();
@@ -32,24 +32,33 @@ class score
 
 	private static $failId = 0;
 
-	public function __construct(factory $factory = null)
+	public function __construct(depedencies $depedencies = null)
 	{
 		$this
-			->setFactory($factory ?: new factory())
-			->setCoverage($this->factory['mageekguy\atoum\score\coverage']($this->factory))
+			->setDepedencies($depedencies ?: new depedencies())
+			->setCoverage($this->depedencies[$this]['coverage']($this->depedencies))
 		;
 	}
 
-	public function setFactory(factory $factory)
+	public function setDepedencies(depedencies $depedencies)
 	{
-		$this->factory = $factory;
+		$this->depedencies = $depedencies;
+
+		if (isset($this->depedencies[$this]) === false)
+		{
+			$this->depedencies[$this] = new depedencies();
+		}
+
+		$this->depedencies[$this]->lock();
+		$this->depedencies[$this]['coverage'] = function($depedencies) { return new score\coverage($depedencies); };
+		$this->depedencies[$this]->unlock();
 
 		return $this;
 	}
 
-	public function getFactory()
+	public function getDepedencies()
 	{
-		return $this->factory;
+		return $this->depedencies;
 	}
 
 	public function reset()

@@ -19,6 +19,17 @@ class generator extends atoum\script
 	protected $destinationDirectory = null;
 	protected $stubFile = null;
 
+	public function setDepedencies(atoum\depedencies $depedencies)
+	{
+		parent::setDepedencies($depedencies);
+
+		$this->depedencies[$this]->lock();
+		$this->depedencies[$this]['phar'] = function($name) { return new \phar($name); };
+		$this->depedencies[$this]->unlock();
+
+		return $this;
+	}
+
 	public function setOriginDirectory($directory)
 	{
 		$originDirectory = $this->cleanPath($directory);
@@ -175,7 +186,7 @@ class generator extends atoum\script
 			throw new exceptions\runtime(sprintf($this->locale->_('Unable to read stub file \'%s\''), $this->stubFile));
 		}
 
-		$phar = $this->factory->build('phar', array($pharFile));
+		$phar = $this->depedencies[$this]['phar']($pharFile);
 
 		$phar['versions'] = serialize(array('1' => atoum\version, 'current' => '1'));
 

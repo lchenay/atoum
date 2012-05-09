@@ -21,15 +21,19 @@ class vim extends atoum\test
 		$this
 			->if($report = new asynchronous\vim())
 			->then
-				->object($report->getFactory())->isInstanceOf('mageekguy\atoum\factory')
+				->object($depedencies = $report->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+				->boolean(isset($depedencies['mageekguy\atoum\reports\asynchronous\vim']['locale']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\reports\asynchronous\vim']['adapter']))->isTrue()
 				->object($report->getLocale())->isInstanceOf('mageekguy\atoum\locale')
 				->object($report->getAdapter())->isInstanceOf('mageekguy\atoum\adapter')
-			->if($factory = new atoum\factory())
-			->and($factory['mageekguy\atoum\locale'] = $locale = new atoum\locale())
-			->and($factory['mageekguy\atoum\adapter'] = $adapter = new atoum\adapter())
-			->and($report = new asynchronous\vim($factory))
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\reports\asynchronous\vim']['locale'] = $localeInjector = function() use (& $locale) { return $locale = new atoum\locale(); })
+			->and($depedencies['mageekguy\atoum\reports\asynchronous\vim']['adapter'] = $adapterInjector = function() use (& $adapter) { return $adapter = new atoum\adapter(); })
+			->and($report = new asynchronous\vim($depedencies))
 			->then
-				->object($report->getFactory())->isIdenticalTo($factory)
+				->object($report->getDepedencies())->isIdenticalTo($depedencies)
+				->object($depedencies['mageekguy\atoum\reports\asynchronous\vim']['locale'])->isIdenticalTo($localeInjector)
+				->object($depedencies['mageekguy\atoum\reports\asynchronous\vim']['adapter'])->isIdenticalTo($adapterInjector)
 				->object($report->getLocale())->isIdenticalTo($locale)
 				->object($report->getAdapter())->isIdenticalTo($adapter)
 		;

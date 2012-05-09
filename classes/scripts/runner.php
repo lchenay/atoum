@@ -26,16 +26,33 @@ class runner extends atoum\script
 
 	protected static $autorunner = null;
 
-	public function __construct($name, atoum\factory $factory = null)
+	public function __construct($name, atoum\depedencies $depedencies = null)
 	{
-		parent::__construct($name, $factory);
+		parent::__construct($name, $depedencies);
 
-		$this
-			->setIncluder($this->factory['atoum\includer']())
-			->setRunner($this->factory['atoum\runner']($this->factory))
-		;
+		$this->setIncluder($this->depedencies[$this]['includer']());
 
-		$this->factory['atoum\includer'] = $this->includer;
+		$this->setRunner($this->depedencies[$this]['runner']($this->depedencies[$this]));
+	}
+
+	public function setDepedencies(atoum\depedencies $depedencies)
+	{
+		parent::setDepedencies($depedencies);
+
+		$this->depedencies[$this]->lock();
+		$this->depedencies[$this]['includer'] = function() { return new atoum\includer(); };
+		$this->depedencies[$this]['runner'] = function($depedencies) { return new atoum\runner($depedencies); };
+		$this->depedencies[$this]['report'] = function($depedencies) { return new atoum\reports\realtime\cli($depedencies); };
+		$this->depedencies[$this]['configurator'] = function($test) { return new atoum\configurator($test); };
+
+		$that = $this;
+
+		$this->depedencies[$this]['mageekguy\atoum\runner']['locale'] = function() use ($that) { return $that->getLocale(); };
+		$this->depedencies[$this]['mageekguy\atoum\runner']['adapter'] = function() use ($that) { return $that->getAdapter(); };
+		$this->depedencies[$this]['mageekguy\atoum\runner']['includer'] = function() use ($that) { return $that->getIncluder(); };
+		$this->depedencies[$this]->unlock();
+
+		return $this;
 	}
 
 	public function isRunningFromCli()
@@ -107,8 +124,8 @@ class runner extends atoum\script
 				{
 					if ($this->runner->hasReports() === false)
 					{
-						$report = $this->factory['mageekguy\atoum\reports\realtime\cli']($this->factory);
-						$report->addWriter($this->factory['mageekguy\atoum\writers\std\out']());
+						$report = $this->depedencies[$this]['report']($this->depedencies);
+						$report->addWriter($this->getOutputWriter());
 
 						$this->runner->addReport($report);
 					}
@@ -174,7 +191,7 @@ class runner extends atoum\script
 
 	public function useConfigFile($path)
 	{
-		$script = $this->factory['atoum\configurator']($this);
+		$script = $this->depedencies[$this]['configurator']($this);
 
 		$runner = $this->runner;
 

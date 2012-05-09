@@ -19,7 +19,9 @@ class cli extends atoum\test
 		$this
 			->if($report = new reports\realtime\cli())
 			->then
-				->object($report->getFactory())->isInstanceOf('mageekguy\atoum\factory')
+				->object($depedencies = $report->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+				->boolean(isset($depedencies['mageekguy\atoum\reports\realtime\cli']['locale']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\reports\realtime\cli']['adapter']))->isTrue()
 				->object($report->getLocale())->isInstanceOf('mageekguy\atoum\locale')
 				->object($report->getAdapter())->isInstanceOf('mageekguy\atoum\adapter')
 				->array($report->getFields())->isEqualTo(array(
@@ -99,12 +101,14 @@ class cli extends atoum\test
 						)
 					)
 				)
-			->if($factory = new atoum\factory())
-			->and($factory['mageekguy\atoum\locale'] = $locale = new atoum\locale())
-			->and($factory['mageekguy\atoum\adapter'] = $adapter = new atoum\adapter())
-			->and($report = new reports\realtime\cli($factory))
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\reports\realtime\cli']['locale'] = $localeInjector = function() use (& $locale) { return $locale = new atoum\locale(); })
+			->and($depedencies['mageekguy\atoum\reports\realtime\cli']['adapter'] = $adapterInjector = function() use (& $adapter) { return $adapter = new atoum\adapter(); })
+			->and($report = new reports\realtime\cli($depedencies))
 			->then
-				->object($report->getFactory())->isIdenticalTo($factory)
+				->object($report->getDepedencies())->isIdenticalTo($depedencies)
+				->object($depedencies['mageekguy\atoum\reports\realtime\cli']['locale'])->isIdenticalTo($localeInjector)
+				->object($depedencies['mageekguy\atoum\reports\realtime\cli']['adapter'])->isIdenticalTo($adapterInjector)
 				->object($report->getAdapter())->isIdenticalTo($adapter)
 				->object($report->getLocale())->isIdenticalTo($locale)
 				->array($report->getFields())->isEqualTo(array(

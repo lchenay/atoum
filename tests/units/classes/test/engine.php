@@ -20,20 +20,20 @@ class engine extends atoum\test
 		$this
 			->if($engine = new \mock\mageekguy\atoum\test\engine())
 			->then
-				->object($engine->getFactory())->isEqualTo(new atoum\factory())
-			->if($engine = new \mock\mageekguy\atoum\test\engine($factory = new atoum\factory()))
+				->object($engine->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+			->if($engine = new \mock\mageekguy\atoum\test\engine($depedencies = new atoum\depedencies()))
 			->then
-				->object($engine->getFactory())->isIdenticalTo($factory)
+				->object($engine->getDepedencies())->isIdenticalTo($depedencies)
 		;
 	}
 
-	public function testSetFactory()
+	public function testSetDepedencies()
 	{
 		$this
 			->if($engine = new \mock\mageekguy\atoum\test\engine())
 			->then
-				->object($engine->setFactory($factory = new atoum\factory()))->isIdenticalTo($engine)
-				->object($engine->getFactory())->isIdenticalTo($factory)
+				->object($engine->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($engine)
+				->object($engine->getDepedencies())->isIdenticalTo($depedencies)
 		;
 	}
 }

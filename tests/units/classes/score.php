@@ -15,7 +15,8 @@ class score extends atoum\test
 		$this
 			->if($score = new atoum\score())
 			->then
-				->object($score->getFactory())->isInstanceOf('mageekguy\atoum\factory')
+				->object($depedencies = $score->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+				->boolean(isset($depedencies['mageekguy\atoum\score']['coverage']))->isTrue()
 				->variable($score->getPhpPath())->isNull()
 				->variable($score->getPhpVersion())->isNull()
 				->variable($score->getAtoumPath())->isNull()
@@ -30,12 +31,13 @@ class score extends atoum\test
 				->array($score->getDurations())->isEmpty()
 				->array($score->getMemoryUsages())->isEmpty()
 				->array($score->getUncompletedMethods())->isEmpty()
-				->object($score->getCoverage())->isEqualTo(new \mageekguy\atoum\score\coverage($score->getFactory()))
-			->if($factory = new atoum\factory())
-			->and($factory['mageekguy\atoum\score\coverage'] = $coverage = new \mageekguy\atoum\score\coverage())
-			->and($score = new atoum\score($factory))
+				->object($score->getCoverage())->isEqualTo(new \mageekguy\atoum\score\coverage($score->getDepedencies()))
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\score']['coverage'] = $coverageInjector = function() use (& $coverage) { return $coverage = new \mageekguy\atoum\score\coverage(); })
+			->and($score = new atoum\score($depedencies))
 			->then
-				->object($score->getFactory())->isIdenticalTo($factory)
+				->object($score->getDepedencies())->isIdenticalTo($depedencies)
+				->object($depedencies['mageekguy\atoum\score']['coverage'])->isIdenticalTo($coverageInjector)
 				->variable($score->getPhpPath())->isNull()
 				->variable($score->getPhpVersion())->isNull()
 				->variable($score->getAtoumPath())->isNull()
@@ -743,7 +745,6 @@ class score extends atoum\test
 			->if($score = new atoum\score())
 			->then
 				->object($coverage = $score->getCoverage())->isInstanceOf('mageekguy\atoum\score\coverage')
-				->object($coverage->getFactory())->isIdenticalTo($score->getFactory())
 		;
 	}
 

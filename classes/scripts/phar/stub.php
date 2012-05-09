@@ -14,6 +14,17 @@ class stub extends scripts\runner
 	const scriptsExtension = '.php';
 	const updateUrl = 'http://downloads.atoum.org/update.php?version=%s';
 
+	public function setDepedencies(atoum\depedencies $depedencies)
+	{
+		parent::setDepedencies($depedencies);
+
+		$this->depedencies[$this]->lock();
+		$this->depedencies[$this]['phar'] = function($name) { return new \phar($name); };
+		$this->depedencies[$this]->unlock();
+
+		return $this;
+	}
+
 	public function listScripts()
 	{
 		$this->writeMessage($this->locale->_('Available scripts are:') . PHP_EOL);
@@ -68,7 +79,7 @@ class stub extends scripts\runner
 
 	public function extractTo($directory)
 	{
-		if (($versions = $this->getVersions($phar = $this->factory->build('phar', array($this->getName())))) === null)
+		if (($versions = $this->getVersions($phar = $this->depedencies[$this]['phar']($this->getName()))) === null)
 		{
 			throw new exceptions\runtime('Unable to extract the PHAR to \'' . $directory . '\', the versions\'s file is invalid');
 		}
@@ -109,7 +120,7 @@ class stub extends scripts\runner
 
 	public function extractResourcesTo($directory)
 	{
-		if (($versions = $this->getVersions($phar = $this->factory->build('phar', array($this->getName())))) === null)
+		if (($versions = $this->getVersions($phar = $this->depedencies[$this]['phar']($this->getName()))) === null)
 		{
 			throw new exceptions\runtime('Unable to extract resources from PHAR in \'' . $directory . '\', the versions\'s file is invalid');
 		}
@@ -182,7 +193,7 @@ class stub extends scripts\runner
 			throw new exceptions\runtime('Unable to update the PHAR, allow_url_fopen is not set, use \'-d allow_url_fopen=1\'');
 		}
 
-		if (($versions = $this->getVersions($currentPhar = $this->factory->build('phar', array($this->getName())))) === null)
+		if (($versions = $this->getVersions($currentPhar = $this->depedencies[$this]['phar']($this->getName()))) === null)
 		{
 			throw new exceptions\runtime('Unable to update the PHAR, the versions\'s file is invalid');
 		}
@@ -255,7 +266,7 @@ class stub extends scripts\runner
 
 	public function listAvailableVersions()
 	{
-		$currentPhar = $this->factory->build('phar', array($this->getName()));
+		$currentPhar = $this->depedencies[$this]['phar']($this->getName());
 
 		if (isset($currentPhar['versions']) === false)
 		{
@@ -294,7 +305,7 @@ class stub extends scripts\runner
 
 		if ($phar === null)
 		{
-			$phar = $this->factory->build('phar', array($this->getName()));
+			$phar = $this->depedencies[$this]['phar']($this->getName());
 		}
 
 		if (($versions = $this->getVersions($phar)) === null)
@@ -327,7 +338,7 @@ class stub extends scripts\runner
 
 		if ($phar === null)
 		{
-			$phar = $this->factory->build('phar', array($this->getName()));
+			$phar = $this->depedencies[$this]['phar']($this->getName());
 		}
 
 		if (($versions = $this->getVersions($phar)) === null)
