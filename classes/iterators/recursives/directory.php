@@ -31,7 +31,7 @@ class directory implements \iteratorAggregate
 		$this->depedencies->lock();
 		$this->depedencies['directory\iterator'] = function($path) { return new \recursiveDirectoryIterator($path); };
 		$this->depedencies['filters\dot'] = function($iterator, $depedencies) { return new atoum\iterators\filters\recursives\dot($iterator, $depedencies); };
-		$this->depedencies['filters\extension'] = function($iterator, $extensions) { return new atoum\iterators\filters\recursives\extension($iterator, $extensions); };
+		$this->depedencies['filters\extension'] = function($iterator, $extensions, $depedencies) { return new atoum\iterators\filters\recursives\extension($iterator, $extensions, $depedencies); };
 		$this->depedencies->unlock();
 
 		return $this;
@@ -74,7 +74,7 @@ class directory implements \iteratorAggregate
 
 		if (sizeof($this->acceptedExtensions) > 0)
 		{
-			$iterator = $this->depedencies['filters\extension']($iterator, $this->acceptedExtensions);
+			$iterator = $this->depedencies['filters\extension']($iterator, $this->acceptedExtensions, $this->depedencies);
 		}
 
 		return $iterator;

@@ -14,14 +14,12 @@ class dot extends \recursiveFilterIterator
 	{
 		$this->setDepedencies($depedencies ?: new atoum\depedencies());
 
-		if ($mixed instanceof \recursiveIterator)
+		if ($mixed instanceof \recursiveIterator === false)
 		{
-			parent::__construct($mixed);
+			$mixed = $this->depedencies['directory\iterator']((string) $mixed);
 		}
-		else
-		{
-			parent::__construct($this->depedencies['directory\iterator']((string) $mixed));
-		}
+
+		parent::__construct($mixed);
 	}
 
 	public function setDepedencies(atoum\depedencies $depedencies)

@@ -8,20 +8,38 @@ use
 
 class extension extends \recursiveFilterIterator
 {
+	protected $depedencies = null;
 	protected $acceptedExtensions = array();
 
-	public function __construct($mixed, array $acceptedExtensions)
+	public function __construct($mixed, array $acceptedExtensions, atoum\depedencies $depedencies = null)
 	{
-		if ($mixed instanceof \recursiveIterator)
+		$this
+			->setDepedencies($depedencies ?: new atoum\depedencies())
+			->setAcceptedExtensions($acceptedExtensions)
+		;
+
+		if ($mixed instanceof \recursiveIterator === false)
 		{
-			parent::__construct($mixed);
-		}
-		else
-		{
-			parent::__construct($this->createFactory()->build('recursiveDirectoryIterator', array((string) $mixed)));
+			$mixed = $this->depedencies['directory\iterator']((string) $mixed);
 		}
 
-		$this->setAcceptedExtensions($acceptedExtensions);
+		parent::__construct($mixed);
+	}
+
+	public function setDepedencies(atoum\depedencies $depedencies)
+	{
+		$this->depedencies = $depedencies[$this];
+
+		$this->depedencies->lock();
+		$this->depedencies['directory\iterator'] = function($path) { return new \recursiveDirectoryIterator($path); };
+		$this->depedencies->unlock();
+
+		return $this;
+	}
+
+	public function getDepedencies()
+	{
+		return $this->depedencies;
 	}
 
 	public function setAcceptedExtensions(array $extensions)
@@ -50,11 +68,6 @@ class extension extends \recursiveFilterIterator
 	public function getChildren()
 	{
 		return new self($this->getInnerIterator()->getChildren(), $this->acceptedExtensions);
-	}
-
-	public function createFactory()
-	{
-		return new atoum\factory();
 	}
 }
 

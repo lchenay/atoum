@@ -407,7 +407,7 @@ class runner implements observable, adapter\aggregator
 
 		natsort($runTestClasses);
 
-		$tests = array();
+		$tests = new \splObjectStorage();
 
 		foreach ($runTestClasses as $runTestClass)
 		{
@@ -415,7 +415,7 @@ class runner implements observable, adapter\aggregator
 
 			if (self::isIgnored($test, $namespaces, $tags) === false && ($methods = self::getMethods($test, $runTestMethods, $tags)))
 			{
-				$tests[] = array($test, $methods);
+				$tests[$test] = $methods;
 
 				$this->testNumber++;
 				$this->testMethodNumber += sizeof($methods);
@@ -428,13 +428,14 @@ class runner implements observable, adapter\aggregator
 		{
 			$phpPath = $this->getPhpPath();
 
-			foreach ($tests as $testMethods)
+			foreach ($tests as $test)
 			{
-				list($test, $methods) = $testMethods;
-
 				$test
 					->setPhpPath($phpPath)
 					->setLocale($this->locale)
+					->setAdapter($this->adapter)
+					->setIncluder($this->includer)
+					->setDepedencies($this->depedencies)
 					->setBootstrapFile($this->bootstrapFile)
 				;
 
@@ -457,7 +458,7 @@ class runner implements observable, adapter\aggregator
 					$test->addObserver($observer);
 				}
 
-				$this->score->merge($test->run($methods)->getScore());
+				$this->score->merge($test->run($tests->getInfo())->getScore());
 			}
 		}
 

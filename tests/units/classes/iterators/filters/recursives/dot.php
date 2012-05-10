@@ -38,7 +38,7 @@ class dot extends atoum\test
 				->object($filter->getInnerIterator())->isIdenticalTo($recursiveIterator)
 				->object($filterDepedencies = $filter->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\iterators\filters\recursives\dot'])
 				->object($filterDepedencies['directory\iterator'])->isIdenticalTo($directoryIteratorInjector)
-			->and($filter = new recursives\dot($path = uniqid(), $depedencies))
+			->if($filter = new recursives\dot($path = uniqid(), $depedencies))
 			->then
 				->object($filterDepedencies = $filter->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\iterators\filters\recursives\dot'])
 				->object($filterDepedencies['directory\iterator'])->isIdenticalTo($directoryIteratorInjector)
