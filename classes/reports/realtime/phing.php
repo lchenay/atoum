@@ -21,9 +21,9 @@ class phing extends realtime
 	protected $codeCoverageReportPath = null;
 	protected $codeCoverageReportUrl = null;
 
-	public function __construct($showProgress = true, $showCodeCoverage = true, $showMissingCodeCoverage = true, $showDuration = true, $showMemory = true, $codeCoverageReportPath = null, $codeCoverageReportUrl = null, atoum\factory $factory = null)
+	public function __construct($showProgress = true, $showCodeCoverage = true, $showMissingCodeCoverage = true, $showDuration = true, $showMemory = true, $codeCoverageReportPath = null, $codeCoverageReportUrl = null, atoum\depedencies $depedencies = null)
 	{
-		parent::__construct($factory);
+		parent::__construct($depedencies);
 
 		$this->showProgress = ($showProgress == true);
 		$this->showCodeCoverage = ($showCodeCoverage == true);
@@ -179,9 +179,19 @@ class phing extends realtime
 		}
 	}
 
+	public function progressIsShowed()
+	{
+		return ($this->showProgress === true);
+	}
+
 	public function codeCoverageIsShowed()
 	{
 		return ($this->showCodeCoverage === true);
+	}
+
+	public function missingCodeCoverageIsShowed()
+	{
+		return ($this->showMissingCodeCoverage === true);
 	}
 
 	public function durationIsShowed()
@@ -192,16 +202,6 @@ class phing extends realtime
 	public function memoryIsShowed()
 	{
 		return ($this->showMemory === true);
-	}
-
-	public function missingCodeCoverageIsShowed()
-	{
-		return ($this->showMissingCodeCoverage === true);
-	}
-
-	public function progressIsShowed()
-	{
-		return ($this->showProgress === true);
 	}
 
 	public function getCodeCoverageReportPath()

@@ -16,24 +16,19 @@ class report implements observer, adapter\aggregator
 	{
 		$this
 			->setDepedencies($depedencies ?: new depedencies())
-			->setLocale($this->depedencies[$this]['locale']())
-			->setAdapter($this->depedencies[$this]['adapter']())
+			->setLocale($this->depedencies['locale']())
+			->setAdapter($this->depedencies['adapter']())
 		;
 	}
 
 	public function setDepedencies(depedencies $depedencies)
 	{
-		$this->depedencies = $depedencies;
+		$this->depedencies = $depedencies[$this];
 
-		if (isset($this->depedencies[$this]) === false)
-		{
-			$this->depedencies[$this] = new depedencies();
-		}
-
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['locale'] = function() { return new locale(); };
-		$this->depedencies[$this]['adapter'] = function() { return new adapter(); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['locale'] = function() { return new locale(); };
+		$this->depedencies['adapter'] = function() { return new adapter(); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}

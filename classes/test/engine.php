@@ -17,16 +17,11 @@ abstract class engine
 
 	public function setDepedencies(atoum\depedencies $depedencies)
 	{
-		$this->depedencies = $depedencies;
+		$this->depedencies = $depedencies[$this];
 
-		if (isset($this->depedencies[$this]) === false)
-		{
-			$this->depedencies[$this] = new atoum\depedencies();
-		}
-
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['score'] = function($depedencies) { return new atoum\score($depedencies); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['score'] = function($depedencies) { return new atoum\score($depedencies); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}

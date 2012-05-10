@@ -30,8 +30,8 @@ class xunit extends atoum\test
 			->then
 				->array($report->getFields(atoum\runner::runStart))->isEmpty()
 				->object($depedencies = $report->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
-				->boolean(isset($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['locale']))->isTrue()
-				->boolean(isset($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['adapter']))->isTrue()
+				->boolean(isset($depedencies['locale']))->isTrue()
+				->boolean(isset($depedencies['adapter']))->isTrue()
 				->object($report->getLocale())->isInstanceOf('mageekguy\atoum\locale')
 				->object($report->getAdapter())->isInstanceOf('mageekguy\atoum\adapter')
 			->if($adapter = new atoum\test\adapter())
@@ -41,7 +41,7 @@ class xunit extends atoum\test
 			->and($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['adapter'] = $adapterInjector = function() use ($adapter) { return $adapter; })
 			->and($report = new reports\xunit($depedencies))
 			->then
-				->object($report->getDepedencies())->isIdenticalTo($depedencies)
+				->object($report->getDepedencies())->isIdenticalTo($depedencies[$report])
 				->object($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['locale'])->isIdenticalTo($localeInjector)
 				->object($depedencies['mageekguy\atoum\reports\asynchronous\xunit']['adapter'])->isIdenticalTo($adapterInjector)
 				->object($report->getLocale())->isIdenticalTo($locale)

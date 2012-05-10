@@ -38,8 +38,8 @@ class builder extends atoum\script
 		parent::__construct($name, $depedencies);
 
 		$this
-			->setVcs($this->depedencies[$this]['vcs\svn']())
-			->setSuperglobals($this->depedencies[$this]['superglobals']())
+			->setVcs($this->depedencies['vcs\svn']())
+			->setSuperglobals($this->depedencies['superglobals']())
 			->setUnitTestRunnerScript(self::defaultUnitTestRunnerScript)
 			->setPharGeneratorScript(self::defaultPharGeneratorScript)
 		;
@@ -49,10 +49,10 @@ class builder extends atoum\script
 	{
 		parent::setDepedencies($depedencies);
 
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['vcs\svn'] = function() { return new builder\vcs\svn(); };
-		$this->depedencies[$this]['superglobals'] = function() { return new atoum\superglobals(); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['vcs\svn'] = function() { return new builder\vcs\svn(); };
+		$this->depedencies['superglobals'] = function() { return new atoum\superglobals(); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}

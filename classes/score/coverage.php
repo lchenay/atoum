@@ -25,16 +25,11 @@ class coverage implements \countable
 
 	public function setDepedencies(atoum\depedencies $depedencies)
 	{
-		$this->depedencies = $depedencies;
+		$this->depedencies = $depedencies[$this];
 
-		if (isset($this->depedencies[$this]) === false)
-		{
-			$this->depedencies[$this] = new atoum\depedencies();
-		}
-
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['reflection\class'] = function($class) { return new \reflectionClass($class); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['reflection\class'] = function($class) { return new \reflectionClass($class); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}
@@ -72,7 +67,7 @@ class coverage implements \countable
 		{
 			try
 			{
-				$reflectedClass = $this->depedencies[$this]['reflection\class']($class);
+				$reflectedClass = $this->depedencies['reflection\class']($class);
 
 				if ($this->isExcluded($reflectedClass) === false)
 				{

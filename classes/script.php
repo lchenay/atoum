@@ -28,11 +28,11 @@ abstract class script implements atoum\adapter\aggregator
 
 		$this
 			->setDepedencies($depedencies ?: new atoum\depedencies())
-			->setLocale($this->depedencies[$this]['locale']())
-			->setAdapter($this->depedencies[$this]['adapter']())
-			->setArgumentsParser($this->depedencies[$this]['arguments\parser']())
-			->setOutputWriter($this->depedencies[$this]['writers\output']())
-			->setErrorWriter($this->depedencies[$this]['writers\error']())
+			->setLocale($this->depedencies['locale']())
+			->setAdapter($this->depedencies['adapter']())
+			->setArgumentsParser($this->depedencies['arguments\parser']())
+			->setOutputWriter($this->depedencies['writers\output']())
+			->setErrorWriter($this->depedencies['writers\error']())
 		;
 
 		if ($this->adapter->php_sapi_name() !== 'cli')
@@ -43,20 +43,15 @@ abstract class script implements atoum\adapter\aggregator
 
 	public function setDepedencies(atoum\depedencies $depedencies)
 	{
-		$this->depedencies = $depedencies;
+		$this->depedencies = $depedencies[$this];
 
-		if (isset($this->depedencies[$this]) === false)
-		{
-			$this->depedencies[$this] = new atoum\depedencies();
-		}
-
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['locale'] = function() { return new atoum\locale(); };
-		$this->depedencies[$this]['adapter'] = function() { return new atoum\adapter(); };
-		$this->depedencies[$this]['arguments\parser'] = function() { return new atoum\script\arguments\parser(); };
-		$this->depedencies[$this]['writers\output'] = function() { return new atoum\writers\std\out(); };
-		$this->depedencies[$this]['writers\error'] = function() { return new atoum\writers\std\err(); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['locale'] = function() { return new atoum\locale(); };
+		$this->depedencies['adapter'] = function() { return new atoum\adapter(); };
+		$this->depedencies['arguments\parser'] = function() { return new atoum\script\arguments\parser(); };
+		$this->depedencies['writers\output'] = function() { return new atoum\writers\std\out(); };
+		$this->depedencies['writers\error'] = function() { return new atoum\writers\std\err(); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}

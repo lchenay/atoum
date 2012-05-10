@@ -66,20 +66,19 @@ abstract class test implements observable, adapter\aggregator, \countable
 	{
 		$this
 			->setDepedencies($depedencies ?: new depedencies())
-			->setScore($this->depedencies[$this]['score']($this->depedencies[$this]))
-			->setLocale($this->depedencies[$this]['locale']())
-			->setAdapter($this->depedencies[$this]['adapter']())
-			->setIncluder($this->depedencies[$this]['includer']())
-			->setSuperglobals($this->depedencies[$this]['superglobals']())
+			->setScore($this->depedencies['score']($this->depedencies))
+			->setLocale($this->depedencies['locale']())
+			->setAdapter($this->depedencies['adapter']())
+			->setIncluder($this->depedencies['includer']())
 			->enableCodeCoverage()
 		;
 
-		$class = $this->depedencies[$this]['reflection\class']($this);
+		$class = $this->depedencies['reflection\class']($this);
 
 		$this->path = $class->getFilename();
 		$this->class = $class->getName();
 
-		$annotationExtractor = $this->depedencies[$this]['annotations\extractor']();
+		$annotationExtractor = $this->depedencies['annotations\extractor']();
 
 		$test = $this;
 
@@ -133,7 +132,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 				->setAlias('class', 'phpClass')
 		;
 
-		$this->setAssertionManager($this->depedencies[$this]['assertion\manager']());
+		$this->setAssertionManager($this->depedencies['assertion\manager']());
 	}
 
 	public function __toString()
@@ -153,24 +152,23 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 	public function setDepedencies(depedencies $depedencies)
 	{
-		$this->depedencies = $depedencies;
+		$this->depedencies = $depedencies[$this];
 
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['locale'] = function() { return new locale(); };
-		$this->depedencies[$this]['adapter'] = function() { return new adapter(); };
-		$this->depedencies[$this]['score'] = function($depedencies) { return new score(); };
-		$this->depedencies[$this]['includer'] = function() { return new includer(); };
-		$this->depedencies[$this]['superglobals'] = function() { return new superglobals(); };
-		$this->depedencies[$this]['reflection\class'] = function($class) { return new \reflectionClass($class); };
-		$this->depedencies[$this]['reflection\method'] = function($class, $method) { return new \reflectionMethod($class, $method); };
-		$this->depedencies[$this]['annotations\extractor'] = function() { return new annotations\extractor(); };
-		$this->depedencies[$this]['assertion\manager'] = function() { return new test\assertion\manager(); };
-		$this->depedencies[$this]['asserter\generator'] = function($test) { return new test\asserter\generator($test); };
-		$this->depedencies[$this]['mock\generator'] = function($test) { return new test\mock\generator($test); };
-		$this->depedencies[$this]['engines\concurrent'] = function($depedencies) { return new test\engines\concurrent($depedencies); };
-		$this->depedencies[$this]['engines\isolate'] = function($depedencies) { return new test\engines\isolate($depedencies); };
-		$this->depedencies[$this]['engines\inline'] = function($depedencies) { return new test\engines\inline($depedencies); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['locale'] = function() { return new locale(); };
+		$this->depedencies['adapter'] = function() { return new adapter(); };
+		$this->depedencies['score'] = function($depedencies) { return new score($depedencies); };
+		$this->depedencies['includer'] = function() { return new includer(); };
+		$this->depedencies['reflection\class'] = function($class) { return new \reflectionClass($class); };
+		$this->depedencies['reflection\method'] = function($class, $method) { return new \reflectionMethod($class, $method); };
+		$this->depedencies['annotations\extractor'] = function() { return new annotations\extractor(); };
+		$this->depedencies['assertion\manager'] = function() { return new test\assertion\manager(); };
+		$this->depedencies['asserter\generator'] = function($test) { return new test\asserter\generator($test); };
+		$this->depedencies['mock\generator'] = function($test) { return new test\mock\generator($test); };
+		$this->depedencies['engines\concurrent'] = function($depedencies) { return new test\engines\concurrent($depedencies); };
+		$this->depedencies['engines\isolate'] = function($depedencies) { return new test\engines\isolate($depedencies); };
+		$this->depedencies['engines\inline'] = function($depedencies) { return new test\engines\inline($depedencies); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}
@@ -270,18 +268,6 @@ abstract class test implements observable, adapter\aggregator, \countable
 		return $this;
 	}
 
-	public function setSuperglobals(superglobals $superglobals)
-	{
-		$this->superglobals = $superglobals;
-
-		return $this;
-	}
-
-	public function getSuperglobals()
-	{
-		return $this->superglobals;
-	}
-
 	public function setIncluder(includer $includer)
 	{
 		$this->includer = $includer;
@@ -315,7 +301,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 	public function getMockGenerator()
 	{
-		return $this->mockGenerator ?: $this->setMockGenerator($this->depedencies[$this]['mock\generator']($this))->mockGenerator;
+		return $this->mockGenerator ?: $this->setMockGenerator($this->depedencies['mock\generator']($this))->mockGenerator;
 	}
 
 	public function setAsserterGenerator(test\asserter\generator $generator)
@@ -329,7 +315,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 	{
 		test\adapter::resetCallsForAllInstances();
 
-		return $this->asserterGenerator ?: $this->setAsserterGenerator($this->depedencies[$this]['asserter\generator']($this))->asserterGenerator;
+		return $this->asserterGenerator ?: $this->setAsserterGenerator($this->depedencies['asserter\generator']($this))->asserterGenerator;
 	}
 
 	public function setTestNamespace($testNamespace)
@@ -681,7 +667,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 							throw new test\exceptions\runtime('Data provider ' . $this->getClass() . '::' . $this->dataProviders[$testMethod] . '() must return an array or an iterator');
 						}
 
-						$reflectedTestMethod = $this->depedencies[$this]['reflection\method']($this, $testMethod);
+						$reflectedTestMethod = $this->depedencies['reflection\method']($this, $testMethod);
 						$numberOfArguments = $reflectedTestMethod->getNumberOfRequiredParameters();
 
 						foreach ($data as $key => $arguments)
@@ -1014,7 +1000,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 		$engineClass = ($this->getMethodEngine($this->currentMethod) ?: $this->getClassEngine() ?: self::getDefaultEngine());
 
-		$engine = $this->depedencies[$this]['engines\\' . $engineClass]($this->depedencies);
+		$engine = $this->depedencies['engines\\' . $engineClass]($this->depedencies);
 
 		if ($engine instanceof test\engine === false)
 		{

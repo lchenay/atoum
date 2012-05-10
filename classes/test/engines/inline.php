@@ -15,7 +15,7 @@ class inline extends test\engine
 	{
 		parent::__construct($depedencies);
 
-		$this->score = $this->depedencies[$this]['score']($this->depedencies);
+		$this->score = $this->depedencies['score']($this->depedencies);
 	}
 
 	public function isAsynchronous()

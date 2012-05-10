@@ -13,11 +13,11 @@ class tagger extends atoum\script
 	protected $engine = null;
 	protected $tagVersion = true;
 
-	public function __construct($name, atoum\factory $factory = null)
+	public function __construct($name, atoum\depedencies $depedencies = null)
 	{
-		parent::__construct($name, $factory);
+		parent::__construct($name, $depedencies);
 
-		$this->setEngine($this->depedencies[$this]['engine']($this));
+		$this->setEngine($this->depedencies['engine']($this));
 	}
 
 	public function setDepedencies(atoum\depedencies $depedencies)
@@ -25,7 +25,7 @@ class tagger extends atoum\script
 		parent::setDepedencies($depedencies);
 
 		$this->depedencies->lock();
-		$this->depedencies[$this]['engine'] = function($script) { return new tagger\engine($script->getAdapter()); };
+		$this->depedencies['engine'] = function($script) { return new tagger\engine($script->getAdapter()); };
 		$this->depedencies->unlock();
 
 		return $this;

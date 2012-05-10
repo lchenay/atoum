@@ -91,11 +91,10 @@ namespace mageekguy\atoum\tests\units
 			$this
 				->if($test = new emptyTest())
 				->then
-					->object($test->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
-					->object($test->getScore())->isInstanceOf('mageekguy\atoum\score')
+					->object($depedencies = $test->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+					->object($test->getScore())->isEqualTo(new atoum\score($depedencies))
 					->object($test->getLocale())->isEqualTo(new atoum\locale())
 					->object($test->getAdapter())->isEqualTo(new atoum\adapter())
-					->object($test->getSuperglobals())->isEqualTo(new atoum\superglobals())
 					->boolean($test->isIgnored())->isTrue()
 					->array($test->getAllTags())->isEqualTo($tags = array('empty', 'fake', 'dummy'))
 					->array($test->getTags())->isEqualTo($tags)
@@ -110,14 +109,12 @@ namespace mageekguy\atoum\tests\units
 				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['score'] = $score = new atoum\score())
 				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['locale'] = $locale = new atoum\locale())
 				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['adapter'] = $adapter = new atoum\adapter())
-				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['superglobals'] = $superglobals = new atoum\superglobals())
 				->and($test = new emptyTest($depedencies))
 				->then
-					->object($test->getDepedencies())->isIdenticalTo($depedencies)
+					->object($test->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\tests\units\emptyTest'])
 					->object($test->getScore())->isIdenticalTo($score)
 					->object($test->getLocale())->isIdenticalTo($locale)
 					->object($test->getAdapter())->isIdenticalTo($adapter)
-					->object($test->getSuperglobals())->isIdenticalTo($superglobals)
 					->boolean($test->isIgnored())->isTrue()
 					->array($test->getAllTags())->isEqualTo($tags = array('empty', 'fake', 'dummy'))
 					->array($test->getTags())->isEqualTo($tags)
@@ -203,16 +200,6 @@ namespace mageekguy\atoum\tests\units
 					->boolean($test->codeCoverageIsEnabled())->isTrue()
 					->object($test->disableCodeCoverage())->isIdenticalTo($test)
 					->boolean($test->codeCoverageIsEnabled())->isFalse()
-			;
-		}
-
-		public function testSetSuperglobals()
-		{
-			$this
-				->if($test = new emptyTest())
-				->then
-					->object($test->setSuperglobals($superglobals = new atoum\superglobals()))->isIdenticalTo($test)
-					->object($test->getSuperglobals())->isIdenticalTo($superglobals);
 			;
 		}
 

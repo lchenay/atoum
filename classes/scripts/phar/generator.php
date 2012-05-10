@@ -23,9 +23,9 @@ class generator extends atoum\script
 	{
 		parent::setDepedencies($depedencies);
 
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['phar'] = function($name) { return new \phar($name); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['phar'] = function($name) { return new \phar($name); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}
@@ -186,7 +186,7 @@ class generator extends atoum\script
 			throw new exceptions\runtime(sprintf($this->locale->_('Unable to read stub file \'%s\''), $this->stubFile));
 		}
 
-		$phar = $this->depedencies[$this]['phar']($pharFile);
+		$phar = $this->depedencies['phar']($pharFile);
 
 		$phar['versions'] = serialize(array('1' => atoum\version, 'current' => '1'));
 

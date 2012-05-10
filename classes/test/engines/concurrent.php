@@ -23,16 +23,16 @@ class concurrent extends test\engine
 	{
 		parent::__construct($depedencies);
 
-		$this->adapter = $this->depedencies[$this]['adapter']();
+		$this->adapter = $this->depedencies['adapter']();
 	}
 
 	public function setDepedencies(atoum\depedencies $depedencies)
 	{
 		parent::setDepedencies($depedencies);
 
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['adapter'] = function() { return new atoum\adapter(); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['adapter'] = function() { return new atoum\adapter(); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}
@@ -152,7 +152,7 @@ class concurrent extends test\engine
 
 				if ($score instanceof atoum\score === false)
 				{
-					$score = $this->depedencies[$this]['score']($this->depedencies);
+					$score = $this->depedencies['score']($this->depedencies);
 
 					$score->addUncompletedMethod($this->test->getClass(), $this->method, $phpStatus['exitcode'], $this->stdOut);
 				}

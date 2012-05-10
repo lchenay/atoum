@@ -29,7 +29,22 @@ class coverage extends atoum\test
 			->then
 				->variable($coverage->getValue())->isNull()
 				->array($coverage->getMethods())->isEmpty()
-				->object($coverage->getDepedencies())->isIdenticalTo($depedencies)
+				->object($coverage->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\score\coverage'])
+		;
+	}
+
+	public function testSetDepedencies()
+	{
+		$this
+			->if($coverage = new score\coverage())
+			->then
+				->object($coverage->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($coverage)
+				->boolean(isset($depedencies['mageekguy\atoum\score\coverage']['reflection\class']))->isTrue()
+			->if($depedencies['mageekguy\atoum\score\coverage']['reflection\class'] = $reflectionClassInjector = function() {})
+			->then
+				->object($coverage->setDepedencies($depedencies))->isIdenticalTo($coverage)
+				->boolean(isset($depedencies['mageekguy\atoum\score\coverage']['reflection\class']))->isTrue()
+				->object($depedencies['mageekguy\atoum\score\coverage']['reflection\class'])->isIdenticalTo($reflectionClassInjector)
 		;
 	}
 

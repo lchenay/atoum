@@ -17,12 +17,11 @@ class generator extends atoum\test
 			->if($generator = new mock\generator())
 			->then
 				->object($depedencies = $generator->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
-				->boolean(isset($depedencies['mageekguy\atoum\mock\generator']))->isTrue()
-				->boolean(isset($depedencies['mageekguy\atoum\mock\generator']['adapter']))->isTrue()
-				->boolean(isset($depedencies['mageekguy\atoum\mock\generator']['reflection\class']))->isTrue()
+				->boolean(isset($depedencies['adapter']))->isTrue()
+				->boolean(isset($depedencies['reflection\class']))->isTrue()
 			->if($generator = new mock\generator($depedencies = new atoum\depedencies()))
 			->then
-				->object($generator->getDepedencies())->isIdenticalTo($depedencies)
+				->object($generator->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\mock\generator'])
 				->boolean(isset($depedencies['mageekguy\atoum\mock\generator']))->isTrue()
 				->boolean(isset($depedencies['mageekguy\atoum\mock\generator']['adapter']))->isTrue()
 				->boolean(isset($depedencies['mageekguy\atoum\mock\generator']['reflection\class']))->isTrue()
@@ -32,8 +31,7 @@ class generator extends atoum\test
 			->and($depedencies['mageekguy\atoum\mock\generator']['reflection\class'] = $reflectionClassInjector = function() {})
 			->and($generator = new mock\generator($depedencies))
 			->then
-				->object($generator->getDepedencies())->isIdenticalTo($depedencies)
-				->boolean(isset($depedencies['mageekguy\atoum\mock\generator']))->isTrue()
+				->object($generator->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\mock\generator'])
 				->boolean(isset($depedencies['mageekguy\atoum\mock\generator']['adapter']))->isTrue()
 				->boolean(isset($depedencies['mageekguy\atoum\mock\generator']['reflection\class']))->isTrue()
 				->object($depedencies['mageekguy\atoum\mock\generator']['adapter'])->isIdenticalTo($adapterInjector)

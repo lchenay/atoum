@@ -36,22 +36,17 @@ class score
 	{
 		$this
 			->setDepedencies($depedencies ?: new depedencies())
-			->setCoverage($this->depedencies[$this]['coverage']($this->depedencies))
+			->setCoverage($this->depedencies['coverage']($this->depedencies))
 		;
 	}
 
 	public function setDepedencies(depedencies $depedencies)
 	{
-		$this->depedencies = $depedencies;
+		$this->depedencies = $depedencies[$this];
 
-		if (isset($this->depedencies[$this]) === false)
-		{
-			$this->depedencies[$this] = new depedencies();
-		}
-
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['coverage'] = function($depedencies) { return new score\coverage($depedencies); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['coverage'] = function($depedencies) { return new score\coverage($depedencies); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}

@@ -11,19 +11,19 @@ use
 
 class controller extends test\adapter
 {
-	protected $factory = null;
 	protected $mockClass = null;
+	protected $depedencies = null;
 
 	protected static $controlNextNewMock = null;
 
 	private $disableMethodChecking = false;
 
-	public function __construct(atoum\factory $factory = null)
+	public function __construct(atoum\depedencies $depedencies = null)
 	{
 		parent::__construct();
 
 		$this
-			->setFactory($factory ?: new atoum\factory())
+			->setDepedencies($depedencies ?: new atoum\depedencies())
 			->controlNextNewMock()
 		;
 	}
@@ -60,16 +60,20 @@ class controller extends test\adapter
 		return $this;
 	}
 
-	public function setFactory(atoum\factory $factory)
+	public function setDepedencies(atoum\depedencies $depedencies)
 	{
-		$this->factory = $factory;
+		$this->depedencies = $depedencies[$this];
+
+		$this->depedencies->lock();
+		$this->depedencies['reflection\class'] = function($class) { return new \reflectionClass($class); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}
 
-	public function getFactory()
+	public function getDepedencies()
 	{
-		return $this->factory;
+		return $this->depedencies;
 	}
 
 	public function disableMethodChecking()
@@ -102,7 +106,7 @@ class controller extends test\adapter
 		{
 			$this->mockClass = $mockClass;
 
-			$class = $this->factory['reflectionClass']($this->mockClass);
+			$class = $this->depedencies['reflection\class']($this->mockClass);
 
 			$methods = array_filter($class->getMethods(\reflectionMethod::IS_PUBLIC), function ($value) {
 					try

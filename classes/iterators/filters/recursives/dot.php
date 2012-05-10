@@ -8,26 +8,41 @@ use
 
 class dot extends \recursiveFilterIterator
 {
-	public function __construct($mixed)
+	protected $depedencies = null;
+
+	public function __construct($mixed, atoum\depedencies $depedencies = null)
 	{
+		$this->setDepedencies($depedencies ?: new atoum\depedencies());
+
 		if ($mixed instanceof \recursiveIterator)
 		{
 			parent::__construct($mixed);
 		}
 		else
 		{
-			parent::__construct($this->createFactory()->build('recursiveDirectoryIterator', array((string) $mixed)));
+			parent::__construct($this->depedencies['directory\iterator']((string) $mixed));
 		}
+	}
+
+	public function setDepedencies(atoum\depedencies $depedencies)
+	{
+		$this->depedencies = $depedencies[$this];
+
+		$this->depedencies->lock();
+		$this->depedencies['directory\iterator'] = function($path) { return new \recursiveDirectoryIterator($path); };
+		$this->depedencies->unlock();
+
+		return $this;
+	}
+
+	public function getDepedencies()
+	{
+		return $this->depedencies;
 	}
 
 	public function accept()
 	{
 		return (substr(basename((string) $this->getInnerIterator()->current()), 0, 1) != '.');
-	}
-
-	public function createFactory()
-	{
-		return new atoum\factory();
 	}
 }
 

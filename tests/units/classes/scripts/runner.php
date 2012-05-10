@@ -291,6 +291,54 @@ class runner extends atoum\test
 		;
 	}
 
+	public function testSetDepedencies()
+	{
+		$this
+			->if($scriptRunner = new scripts\runner($name = uniqid()))
+			->then
+				->object($scriptRunner->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($scriptRunner)
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['cli']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['locale']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['adapter']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['includer']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['runner']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['reports\default']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['reports\light']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['configurator']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['reflection\class']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['mageekguy\atoum\runner']['locale']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['mageekguy\atoum\runner']['adapter']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\scripts\runner']['mageekguy\atoum\runner']['includer']))->isTrue()
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\scripts\runner']['cli'] = $cliInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['locale'] = $localeInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['adapter'] = $adapterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['includer'] = $includerInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['runner'] = $runnerInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['reports\default'] = $defaultReportInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['reports\light'] = $lightReportInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['configurator'] = $configuratorInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['reflection\class'] = $reflectionClassInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['mageekguy\atoum\runner']['locale'] = $localeRunnerInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['mageekguy\atoum\runner']['adapter'] = $adapterRunnerInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\runner']['mageekguy\atoum\runner']['includer'] = $includerRunnerInjector = function() {})
+			->then
+				->object($scriptRunner->setDepedencies($depedencies))->isIdenticalTo($scriptRunner)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['cli'])->isIdenticalTo($cliInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['locale'])->isIdenticalTo($localeInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['adapter'])->isIdenticalTo($adapterInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['includer'])->isIdenticalTo($includerInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['runner'])->isIdenticalTo($runnerInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['reports\default'])->isIdenticalTo($defaultReportInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['reports\light'])->isIdenticalTo($lightReportInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['configurator'])->isIdenticalTo($configuratorInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['reflection\class'])->isIdenticalTo($reflectionClassInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['mageekguy\atoum\runner']['locale'])->isIdenticalTo($localeRunnerInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['mageekguy\atoum\runner']['adapter'])->isIdenticalTo($adapterRunnerInjector)
+				->object($depedencies['mageekguy\atoum\scripts\runner']['mageekguy\atoum\runner']['includer'])->isIdenticalTo($includerRunnerInjector)
+		;
+	}
+
 	public function testSetArguments()
 	{
 		$this

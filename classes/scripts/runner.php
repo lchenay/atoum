@@ -30,27 +30,35 @@ class runner extends atoum\script
 	{
 		parent::__construct($name, $depedencies);
 
-		$this->setIncluder($this->depedencies[$this]['includer']());
-
-		$this->setRunner($this->depedencies[$this]['runner']($this->depedencies[$this]));
+		$this
+			->setIncluder($this->depedencies['includer']())
+			->setRunner($this->depedencies['runner']($this->depedencies))
+		;
 	}
 
 	public function setDepedencies(atoum\depedencies $depedencies)
 	{
 		parent::setDepedencies($depedencies);
 
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['includer'] = function() { return new atoum\includer(); };
-		$this->depedencies[$this]['runner'] = function($depedencies) { return new atoum\runner($depedencies); };
-		$this->depedencies[$this]['report'] = function($depedencies) { return new atoum\reports\realtime\cli($depedencies); };
-		$this->depedencies[$this]['configurator'] = function($test) { return new atoum\configurator($test); };
+		$locale = & $this->locale;
+		$adapter = & $this->adapter;
+		$includer = & $this->includer;
 
-		$that = $this;
+		$this->depedencies->lock();
+		$this->depedencies['cli'] = function() { return new atoum\cli(); };
+		$this->depedencies['includer'] = function() { return new atoum\includer(); };
+		$this->depedencies['runner'] = function($depedencies) { return new atoum\runner($depedencies); };
+		$this->depedencies['reports\default'] = function($depedencies) { return new atoum\reports\realtime\cli($depedencies); };
+		$this->depedencies['reports\light'] = function($depedencies) { return new atoum\reports\realtime\cli\light($depedencies); };
+		$this->depedencies['configurator'] = function($test) { return new atoum\configurator($test); };
+		$this->depedencies['reflection\class'] = function($class) { return new \reflectionClass($class); };
+		$this->depedencies->unlock();
 
-		$this->depedencies[$this]['mageekguy\atoum\runner']['locale'] = function() use ($that) { return $that->getLocale(); };
-		$this->depedencies[$this]['mageekguy\atoum\runner']['adapter'] = function() use ($that) { return $that->getAdapter(); };
-		$this->depedencies[$this]['mageekguy\atoum\runner']['includer'] = function() use ($that) { return $that->getIncluder(); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies['mageekguy\atoum\runner']->lock();
+		$this->depedencies['mageekguy\atoum\runner']['locale'] = function() use (& $locale) { return $locale; };
+		$this->depedencies['mageekguy\atoum\runner']['adapter'] = function() use (& $adapter) { return $adapter; };
+		$this->depedencies['mageekguy\atoum\runner']['includer'] = function() use (& $includer) { return $includer; };
+		$this->depedencies['mageekguy\atoum\runner']->unlock();
 
 		return $this;
 	}
@@ -124,7 +132,7 @@ class runner extends atoum\script
 				{
 					if ($this->runner->hasReports() === false)
 					{
-						$report = $this->depedencies[$this]['report']($this->depedencies);
+						$report = $this->depedencies['reports\default']($this->depedencies);
 						$report->addWriter($this->getOutputWriter());
 
 						$this->runner->addReport($report);
@@ -191,7 +199,7 @@ class runner extends atoum\script
 
 	public function useConfigFile($path)
 	{
-		$script = $this->depedencies[$this]['configurator']($this);
+		$script = $this->depedencies['configurator']($this);
 
 		$runner = $this->runner;
 
@@ -680,8 +688,10 @@ class runner extends atoum\script
 								throw new exceptions\logic\invalidArgument(sprintf($script->getLocale()->_('Bad usage of %s, do php %s --help for more informations'), $argument, $script->getName()));
 							}
 
-							$report = $script->getFactory()->build('mageekguy\atoum\reports\realtime\cli\light', array($script->getFactory()));
-							$report->addWriter($script->getFactory()->build('mageekguy\atoum\writers\std\out'));
+							$depedencies = $script->getDepedencies();
+
+							$report = $depedencies['reports\light']($depedencies);
+							$report->addWriter($script->getOutputWriter());
 
 							$script->getRunner()->addReport($report);
 						},
@@ -704,7 +714,7 @@ class runner extends atoum\script
 	{
 		$arguments = ' --disable-loop-mode';
 
-		$cli = $this->factory['mageekguy\atoum\cli']();
+		$cli = $this->depedencies['cli']();
 
 		if ($cli->isTerminal() === true)
 		{
@@ -761,7 +771,7 @@ class runner extends atoum\script
 
 				foreach ($declaredTestClasses as $declaredTestClass)
 				{
-					$declaredTestClass = $this->factory['reflectionClass']($declaredTestClass);
+					$declaredTestClass = $this->depedencies['reflection\class']($declaredTestClass);
 
 					$file = $declaredTestClass->getFilename();
 

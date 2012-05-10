@@ -16,7 +16,7 @@ class score extends atoum\test
 			->if($score = new atoum\score())
 			->then
 				->object($depedencies = $score->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
-				->boolean(isset($depedencies['mageekguy\atoum\score']['coverage']))->isTrue()
+				->boolean(isset($depedencies['coverage']))->isTrue()
 				->variable($score->getPhpPath())->isNull()
 				->variable($score->getPhpVersion())->isNull()
 				->variable($score->getAtoumPath())->isNull()
@@ -36,7 +36,7 @@ class score extends atoum\test
 			->and($depedencies['mageekguy\atoum\score']['coverage'] = $coverageInjector = function() use (& $coverage) { return $coverage = new \mageekguy\atoum\score\coverage(); })
 			->and($score = new atoum\score($depedencies))
 			->then
-				->object($score->getDepedencies())->isIdenticalTo($depedencies)
+				->object($score->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\score'])
 				->object($depedencies['mageekguy\atoum\score']['coverage'])->isIdenticalTo($coverageInjector)
 				->variable($score->getPhpPath())->isNull()
 				->variable($score->getPhpVersion())->isNull()

@@ -41,42 +41,37 @@ class runner implements observable, adapter\aggregator
 	{
 		$this
 			->setDepedencies($depedencies ?: new depedencies())
-			->setAdapter($this->depedencies[$this]['adapter']())
-			->setLocale($this->depedencies[$this]['locale']())
-			->setIncluder($this->depedencies[$this]['includer']())
-			->setScore($this->depedencies[$this]['score']($this->depedencies))
-			->setTestDirectoryIterator($this->depedencies[$this]['directory\iterator']())
+			->setAdapter($this->depedencies['adapter']())
+			->setLocale($this->depedencies['locale']())
+			->setIncluder($this->depedencies['includer']())
+			->setScore($this->depedencies['score']($this->depedencies))
+			->setTestDirectoryIterator($this->depedencies['directory\iterator']())
 		;
 
-		$runnerClass = $this->depedencies[$this]['reflection\class']($this);
+		$runnerClass = $this->depedencies['reflection\class']($this);
 
 		$this->path = $runnerClass->getFilename();
 		$this->class = $runnerClass->getName();
 
-		$this->observers = $this->depedencies[$this]['observers\storage']();
-		$this->reports = $this->depedencies[$this]['reports\storage']();
+		$this->observers = $this->depedencies['observers\storage']();
+		$this->reports = $this->depedencies['reports\storage']();
 	}
 
 	public function setDepedencies(depedencies $depedencies)
 	{
-		$this->depedencies = $depedencies;
+		$this->depedencies = $depedencies[$this];
 
-		if (isset($this->depedencies[$this]) === false)
-		{
-			$this->depedencies[$this] = new depedencies();
-		}
-
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['locale'] = function() { return new locale(); };
-		$this->depedencies[$this]['adapter'] = function() { return new adapter(); };
-		$this->depedencies[$this]['includer'] = function() { return new includer(); };
-		$this->depedencies[$this]['score'] = function() use ($depedencies) { return new score($depedencies); };
-		$this->depedencies[$this]['directory\iterator'] = function() { return new iterators\recursives\directory(); };
-		$this->depedencies[$this]['reflection\class'] = function($class) { return new \reflectionClass($class); };
-		$this->depedencies[$this]['observers\storage'] = function() { return new \splObjectStorage(); };
-		$this->depedencies[$this]['reports\storage'] = function() { return new \splObjectStorage(); };
-		$this->depedencies[$this]['glob\iterator'] = function($path) { return new \globIterator($path); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['locale'] = function() { return new locale(); };
+		$this->depedencies['adapter'] = function() { return new adapter(); };
+		$this->depedencies['includer'] = function() { return new includer(); };
+		$this->depedencies['score'] = function() use ($depedencies) { return new score($depedencies); };
+		$this->depedencies['directory\iterator'] = function() { return new iterators\recursives\directory(); };
+		$this->depedencies['reflection\class'] = function($class) { return new \reflectionClass($class); };
+		$this->depedencies['observers\storage'] = function() { return new \splObjectStorage(); };
+		$this->depedencies['reports\storage'] = function() { return new \splObjectStorage(); };
+		$this->depedencies['glob\iterator'] = function($path) { return new \globIterator($path); };
+		$this->depedencies->unlock();
 
 		return $this;
 	}
@@ -510,7 +505,7 @@ class runner implements observable, adapter\aggregator
 	{
 		try
 		{
-			foreach ($this->depedencies[$this]['glob\iterator'](rtrim($pattern, DIRECTORY_SEPARATOR)) as $path)
+			foreach ($this->depedencies['glob\iterator'](rtrim($pattern, DIRECTORY_SEPARATOR)) as $path)
 			{
 				if ($path->isDir() === true)
 				{
@@ -537,7 +532,7 @@ class runner implements observable, adapter\aggregator
 
 	public function getDeclaredTestClasses($testBaseClass = null)
 	{
-		$depedencies = $this->depedencies[$this];
+		$depedencies = $this->depedencies;
 		$testBaseClass = $testBaseClass ?: __NAMESPACE__ . '\test';
 
 		return array_filter($this->adapter->get_declared_classes(), function($class) use ($depedencies, $testBaseClass) {

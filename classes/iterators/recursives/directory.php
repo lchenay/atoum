@@ -9,18 +9,32 @@ use
 
 class directory implements \iteratorAggregate
 {
+	protected $depedencies = null;
 	protected $path = null;
 	protected $acceptDots = false;
 	protected $acceptedExtensions = array('php');
 
-	public function __construct($path = null, atoum\factory $factory = null)
+	public function __construct($path = null, atoum\depedencies $depedencies = null)
 	{
 		if ($path !== null)
 		{
 			$this->setPath($path);
 		}
 
-		$this->setFactory($factory ?: new atoum\factory());
+		$this->setDepedencies($depedencies ?: new atoum\depedencies());
+	}
+
+	public function setDepedencies(atoum\depedencies $depedencies)
+	{
+		$this->depedencies = $depedencies[$this];
+
+		$this->depedencies->lock();
+		$this->depedencies['directory\iterator'] = function($path) { return new \recursiveDirectoryIterator($path); };
+		$this->depedencies['filters\dot'] = function($iterator, $depedencies) { return new atoum\iterators\filters\recursives\dot($iterator, $depedencies); };
+		$this->depedencies['filters\extension'] = function($iterator, $extensions) { return new atoum\iterators\filters\recursives\extension($iterator, $extensions); };
+		$this->depedencies->unlock();
+
+		return $this;
 	}
 
 	public function setPath($path)
@@ -30,16 +44,9 @@ class directory implements \iteratorAggregate
 		return $this;
 	}
 
-	public function setFactory(atoum\factory $factory)
+	public function getDepedencies()
 	{
-		$this->factory = $factory;
-
-		return $this;
-	}
-
-	public function getFactory()
-	{
-		return $this->factory;
+		return $this->depedencies;
 	}
 
 	public function getPath()
@@ -58,16 +65,16 @@ class directory implements \iteratorAggregate
 			throw new exceptions\runtime('Path is undefined');
 		}
 
-		$iterator = $this->factory->build('recursiveDirectoryIterator', array($this->path));
+		$iterator = $this->depedencies['directory\iterator']($this->path);
 
 		if ($this->acceptDots === false)
 		{
-			$iterator = $this->factory->build('mageekguy\atoum\iterators\filters\recursives\dot', array($iterator));
+			$iterator = $this->depedencies['filters\dot']($iterator, $this->depedencies);
 		}
 
 		if (sizeof($this->acceptedExtensions) > 0)
 		{
-			$iterator = $this->factory->build('mageekguy\atoum\iterators\filters\recursives\extension', array($iterator, $this->acceptedExtensions));
+			$iterator = $this->depedencies['filters\extension']($iterator, $this->acceptedExtensions);
 		}
 
 		return $iterator;

@@ -25,8 +25,8 @@ class report extends atoum\test
 			->then
 				->variable($report->getTitle())->isNull()
 				->object($depedencies = $report->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
-				->boolean(isset($depedencies['mageekguy\atoum\report']['locale']))->isTrue()
-				->boolean(isset($depedencies['mageekguy\atoum\report']['adapter']))->isTrue()
+				->boolean(isset($depedencies['locale']))->isTrue()
+				->boolean(isset($depedencies['adapter']))->isTrue()
 				->object($report->getLocale())->isInstanceOf('mageekguy\atoum\locale')
 				->object($report->getAdapter())->isInstanceOf('mageekguy\atoum\adapter')
 				->array($report->getFields())->isEmpty()
@@ -38,7 +38,7 @@ class report extends atoum\test
 			->and($report = new atoum\report($depedencies))
 			->then
 				->variable($report->getTitle())->isNull()
-				->object($report->getDepedencies())->isIdenticalTo($depedencies)
+				->object($report->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\report'])
 				->boolean(isset($depedencies['mageekguy\atoum\report']['locale']))->isTrue()
 				->object($depedencies['mageekguy\atoum\report']['locale'])->isIdenticalTo($localeInjector)
 				->boolean(isset($depedencies['mageekguy\atoum\report']['adapter']))->isTrue()

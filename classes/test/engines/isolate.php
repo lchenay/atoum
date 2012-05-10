@@ -15,7 +15,7 @@ class isolate extends engines\concurrent
 	{
 		parent::__construct($depedencies);
 
-		$this->score = $this->depedencies[$this]['score']($this->depedencies);
+		$this->score = $this->depedencies['score']($this->depedencies);
 	}
 
 	public function run(atoum\test $test)

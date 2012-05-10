@@ -82,7 +82,7 @@ class builder extends atoum\test
 			->and($depedencies['mageekguy\atoum\reports\asynchronous\builder']['adapter'] = $adapter = new atoum\adapter())
 			->and($report = new reports\builder($depedencies))
 			->then
-				->object($report->getDepedencies())->isIdenticalTo($depedencies)
+				->object($report->getDepedencies())->isIdenticalTo($depedencies[$report])
 				->object($report->getLocale())->isIdenticalTo($locale)
 				->object($report->getAdapter())->isIdenticalTo($adapter)
 				->array($report->getFields())->isEqualTo(array(

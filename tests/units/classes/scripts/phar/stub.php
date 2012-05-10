@@ -45,7 +45,7 @@ class stub extends atoum\test
 					->hasMessage('Unable to update the PHAR, allow_url_fopen is not set, use \'-d allow_url_fopen=1\'')
 			->if($adapter->ini_get = function($name) { return $name === 'phar.readonly' ? 0 : $name = 'allow_url_fopen' ? 1 : ini_get($name); })
 			->and($depedencies = $stub->getDepedencies())
-			->and($depedencies['mageekguy\atoum\scripts\phar\stub']['phar'] = function($path) use (& $phar) {
+			->and($depedencies['phar'] = function($path) use (& $phar) {
 					$pharController = new atoum\mock\controller();
 					$pharController->__construct = function() {};
 					$pharController->offsetExists = true;

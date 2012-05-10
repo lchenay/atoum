@@ -21,11 +21,10 @@ class controller extends atoum\test
 		$this
 			->if($mockController = new mock\controller())
 			->then
-				->object($mockController->getFactory())->isInstanceOf('mageekguy\atoum\factory')
+				->object($mockController->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
 				->variable($mockController->getMockClass())->isNull()
 				->array($mockController->getInvokers())->isEmpty()
 				->array($mockController->getCalls())->isEmpty()
-				->object($mockController->getFactory())->isInstanceOf('mageekguy\atoum\factory')
 		;
 	}
 
@@ -184,16 +183,15 @@ class controller extends atoum\test
 
 		$reflectionClass = new \mock\reflectionClass(uniqid(), $reflectionClassController);
 
-
 		$aMockController = new mock\controller();
 		$aMockController->__construct = function() {};
 
 		$aMock = new \mock\reflectionClass(uniqid(), $aMockController);
 
 		$this
-			->if($factory = new atoum\factory())
-			->and($factory['reflectionClass'] = $reflectionClass)
-			->and($mockController = new mock\controller($factory))
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\mock\controller']['reflection\class'] = $reflectionClass)
+			->and($mockController = new mock\controller($depedencies))
 			->then
 				->variable($mockController->getMockClass())->isNull()
 				->array($mockController->getInvokers())->isEmpty()

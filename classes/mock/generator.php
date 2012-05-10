@@ -24,17 +24,12 @@ class generator
 
 	public function setDepedencies(atoum\depedencies $depedencies)
 	{
-		$this->depedencies = $depedencies;
+		$this->depedencies = $depedencies[$this];
 
-		if (isset($this->depedencies[$this]) === false)
-		{
-			$this->depedencies[$this] = new atoum\depedencies();
-		}
-
-		$this->depedencies[$this]->lock();
-		$this->depedencies[$this]['adapter'] = function() { return new atoum\adapter(); };
-		$this->depedencies[$this]['reflection\class'] = function($class) { return new \reflectionClass($class); };
-		$this->depedencies[$this]->unlock();
+		$this->depedencies->lock();
+		$this->depedencies['adapter'] = function() { return new atoum\adapter(); };
+		$this->depedencies['reflection\class'] = function($class) { return new \reflectionClass($class); };
+		$this->depedencies->unlock();
 
 		return $this;
 
@@ -107,7 +102,7 @@ class generator
 				$mockClass = self::getClassName($class);
 			}
 
-			$adapter = $this->depedencies[$this]['adapter']();
+			$adapter = $this->depedencies['adapter']();
 
 			if ($adapter->class_exists($mockNamespace . '\\' . $mockClass, false) === true || $adapter->interface_exists($mockNamespace . '\\' . $mockClass, false) === true)
 			{
@@ -120,7 +115,7 @@ class generator
 			}
 			else
 			{
-				$reflectionClass = $this->depedencies[$this]['reflection\class']($class);
+				$reflectionClass = $this->depedencies['reflection\class']($class);
 
 				if ($reflectionClass->isFinal() === true)
 				{
