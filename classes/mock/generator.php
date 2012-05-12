@@ -32,8 +32,6 @@ class generator
 		$this->depedencies->unlock();
 
 		return $this;
-
-		return $this;
 	}
 
 	public function getDepedencies()
