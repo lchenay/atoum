@@ -153,6 +153,59 @@ namespace mageekguy\atoum\tests\units
 			;
 		}
 
+		public function testSetDepedencies()
+		{
+			$this
+				->if($test = new emptyTest())
+				->then
+					->object($test->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($test)
+					->object($testDepedencies = $test->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\tests\units\emptyTest'])
+					->boolean(isset($testDepedencies['locale']))->isTrue()
+					->boolean(isset($testDepedencies['adapter']))->isTrue()
+					->boolean(isset($testDepedencies['score']))->isTrue()
+					->boolean(isset($testDepedencies['includer']))->isTrue()
+					->boolean(isset($testDepedencies['reflection\class']))->isTrue()
+					->boolean(isset($testDepedencies['reflection\method']))->isTrue()
+					->boolean(isset($testDepedencies['annotations\extractor']))->isTrue()
+					->boolean(isset($testDepedencies['assertion\manager']))->isTrue()
+					->boolean(isset($testDepedencies['asserter\generator']))->isTrue()
+					->boolean(isset($testDepedencies['mock\generator']))->isTrue()
+					->boolean(isset($testDepedencies['engines\concurrent']))->isTrue()
+					->boolean(isset($testDepedencies['engines\isolate']))->isTrue()
+					->boolean(isset($testDepedencies['engines\inline']))->isTrue()
+				->if($depedencies = new atoum\depedencies())
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['locale'] = $localeInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['adapter'] = $adapterInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['score'] = $scoreInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['includer'] = $includerInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['reflection\class'] = $reflectionClassInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['reflection\method'] = $reflectionMethodInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['annotations\extractor'] = $annotationExtractorInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['assertion\manager'] = $assertionManagerInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['asserter\generator'] = $asserterGeneratorInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['mock\generator'] = $mockGeneratorInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['engines\concurrent'] = $concurrentEngineInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['engines\isolate'] = $isolateEngineInjector = function() {})
+				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['engines\inline'] = $inlineEngineInjector = function() {})
+				->then
+					->object($test->setDepedencies($depedencies))->isIdenticalTo($test)
+					->object($testDepedencies = $test->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\tests\units\emptyTest'])
+					->object($testDepedencies['locale'])->isIdenticalTo($localeInjector)
+					->object($testDepedencies['adapter'])->isIdenticalTo($adapterInjector)
+					->object($testDepedencies['score'])->isIdenticalTo($scoreInjector)
+					->object($testDepedencies['includer'])->isIdenticalTo($includerInjector)
+					->object($testDepedencies['reflection\class'])->isIdenticalTo($reflectionClassInjector)
+					->object($testDepedencies['reflection\method'])->isIdenticalTo($reflectionMethodInjector)
+					->object($testDepedencies['annotations\extractor'])->isIdenticalTo($annotationExtractorInjector)
+					->object($testDepedencies['assertion\manager'])->isIdenticalTo($assertionManagerInjector)
+					->object($testDepedencies['asserter\generator'])->isIdenticalTo($asserterGeneratorInjector)
+					->object($testDepedencies['mock\generator'])->isIdenticalTo($mockGeneratorInjector)
+					->object($testDepedencies['engines\concurrent'])->isIdenticalTo($concurrentEngineInjector)
+					->object($testDepedencies['engines\isolate'])->isIdenticalTo($isolateEngineInjector)
+					->object($testDepedencies['engines\inline'])->isIdenticalTo($inlineEngineInjector)
+			;
+		}
+
 		public function testEnableCodeCoverage()
 		{
 			$this

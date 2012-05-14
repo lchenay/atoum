@@ -17,6 +17,38 @@ class stub extends atoum\test
 		$this->testedClass->isSubclassOf('mageekguy\atoum\scripts\runner');
 	}
 
+	public function testSetDepedencies()
+	{
+		$this
+			->if($stub = new phar\stub(uniqid()))
+			->then
+				->object($stub->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($stub)
+				->object($stubDepedencies = $stub->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\scripts\phar\stub'])
+				->boolean(isset($stubDepedencies['locale']))->isTrue()
+				->boolean(isset($stubDepedencies['adapter']))->isTrue()
+				->boolean(isset($stubDepedencies['arguments\parser']))->isTrue()
+				->boolean(isset($stubDepedencies['writers\output']))->isTrue()
+				->boolean(isset($stubDepedencies['writers\error']))->isTrue()
+				->boolean(isset($stubDepedencies['phar']))->isTrue()
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\scripts\phar\stub']['locale'] = $localeInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\phar\stub']['adapter'] = $adapterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\phar\stub']['arguments\parser'] = $argumentsParserInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\phar\stub']['writers\output'] = $outputWriterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\phar\stub']['writers\error'] = $errorWriterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\phar\stub']['phar'] = $pharInjector = function() {})
+			->then
+				->object($stub->setDepedencies($depedencies))->isIdenticalTo($stub)
+				->object($stubDepedencies = $stub->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\scripts\phar\stub'])
+				->object($stubDepedencies['locale'])->isIdenticalTo($localeInjector)
+				->object($stubDepedencies['adapter'])->isIdenticalTo($adapterInjector)
+				->object($stubDepedencies['arguments\parser'])->isIdenticalTo($argumentsParserInjector)
+				->object($stubDepedencies['writers\output'])->isIdenticalTo($outputWriterInjector)
+				->object($stubDepedencies['writers\error'])->isIdenticalTo($errorWriterInjector)
+				->object($stubDepedencies['phar'])->isIdenticalTo($pharInjector)
+		;
+	}
+
 	public function testClassConstants()
 	{
 		$this

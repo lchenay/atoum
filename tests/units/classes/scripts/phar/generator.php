@@ -32,7 +32,7 @@ class generator extends atoum\test
 				)
 					->isInstanceOf('mageekguy\atoum\exceptions\logic')
 					->hasMessage('\'' . $name . '\' must be used in CLI only')
-			->if($adapter->php_sapi_name = function() { return 'cli'; })
+			->if($adapter->php_sapi_name = 'cli')
 			->and($generator = new phar\generator($name = uniqid(), $depedencies))
 			->then
 				->object($generator->getLocale())->isInstanceOf('mageekguy\atoum\locale')
@@ -53,6 +53,42 @@ class generator extends atoum\test
 				->object($generator->getArgumentsParser())->isIdenticalTo($argumentsParser)
 				->variable($generator->getOriginDirectory())->isNull()
 				->variable($generator->getDestinationDirectory())->isNull()
+		;
+	}
+
+	public function testSetDepedencies()
+	{
+		$this
+			->if($adapter = new atoum\test\adapter())
+			->and($adapter->php_sapi_name = 'cli')
+			->and($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\scripts\phar\generator']['adapter'] = $adapter)
+			->and($generator = new phar\generator(uniqid(), $depedencies))
+			->then
+				->object($generator->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($generator)
+				->object($generatorDepedencies = $generator->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\scripts\phar\generator'])
+				->boolean(isset($generatorDepedencies['locale']))->isTrue()
+				->boolean(isset($generatorDepedencies['adapter']))->isTrue()
+				->boolean(isset($generatorDepedencies['arguments\parser']))->isTrue()
+				->boolean(isset($generatorDepedencies['writers\output']))->isTrue()
+				->boolean(isset($generatorDepedencies['writers\error']))->isTrue()
+				->boolean(isset($generatorDepedencies['phar']))->isTrue()
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\scripts\phar\generator']['locale'] = $localeInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\phar\generator']['adapter'] = $adapterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\phar\generator']['arguments\parser'] = $argumentsParserInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\phar\generator']['writers\output'] = $outputWriterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\phar\generator']['writers\error'] = $errorWriterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\phar\generator']['phar'] = $pharInjector = function() {})
+			->then
+				->object($generator->setDepedencies($depedencies))->isIdenticalTo($generator)
+				->object($generatorDepedencies = $generator->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\scripts\phar\generator'])
+				->object($generatorDepedencies['locale'])->isIdenticalTo($localeInjector)
+				->object($generatorDepedencies['adapter'])->isIdenticalTo($adapterInjector)
+				->object($generatorDepedencies['arguments\parser'])->isIdenticalTo($argumentsParserInjector)
+				->object($generatorDepedencies['writers\output'])->isIdenticalTo($outputWriterInjector)
+				->object($generatorDepedencies['writers\error'])->isIdenticalTo($errorWriterInjector)
+				->object($generatorDepedencies['phar'])->isIdenticalTo($pharInjector)
 		;
 	}
 

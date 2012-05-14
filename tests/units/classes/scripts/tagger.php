@@ -62,6 +62,38 @@ class tagger extends atoum\test
 		;
 	}
 
+	public function testSetDepedencies()
+	{
+		$this
+			->if($tagger = new scripts\tagger(uniqid()))
+			->then
+				->object($tagger->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($tagger)
+				->object($taggerDepedencies = $tagger->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\scripts\tagger'])
+				->boolean(isset($taggerDepedencies['locale']))->isTrue()
+				->boolean(isset($taggerDepedencies['adapter']))->isTrue()
+				->boolean(isset($taggerDepedencies['arguments\parser']))->isTrue()
+				->boolean(isset($taggerDepedencies['writers\output']))->isTrue()
+				->boolean(isset($taggerDepedencies['writers\error']))->isTrue()
+				->boolean(isset($taggerDepedencies['engine']))->isTrue()
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\scripts\tagger']['locale'] = $localeInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\tagger']['adapter'] = $adapterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\tagger']['arguments\parser'] = $argumentsParserInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\tagger']['writers\output'] = $outputWriterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\tagger']['writers\error'] = $errorWriterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\scripts\tagger']['engine'] = $engineInjector = function() {})
+			->then
+				->object($tagger->setDepedencies($depedencies))->isIdenticalTo($tagger)
+				->object($taggerDepedencies = $tagger->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\scripts\tagger'])
+				->object($taggerDepedencies['locale'])->isIdenticalTo($localeInjector)
+				->object($taggerDepedencies['adapter'])->isIdenticalTo($adapterInjector)
+				->object($taggerDepedencies['arguments\parser'])->isIdenticalTo($argumentsParserInjector)
+				->object($taggerDepedencies['writers\output'])->isIdenticalTo($outputWriterInjector)
+				->object($taggerDepedencies['writers\error'])->isIdenticalTo($errorWriterInjector)
+				->object($taggerDepedencies['engine'])->isIdenticalTo($engineInjector)
+		;
+	}
+
 	public function testSetEngine()
 	{
 		$this
