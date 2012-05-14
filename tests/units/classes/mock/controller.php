@@ -21,10 +21,44 @@ class controller extends atoum\test
 		$this
 			->if($mockController = new mock\controller())
 			->then
-				->object($mockController->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+				->object($depedencies = $mockController->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+				->boolean(isset($depedencies['reflection\class']))->isTrue()
 				->variable($mockController->getMockClass())->isNull()
 				->array($mockController->getInvokers())->isEmpty()
 				->array($mockController->getCalls())->isEmpty()
+			->if($mockController = new mock\controller(new atoum\depedencies))
+			->then
+				->object($depedencies = $mockController->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+				->boolean(isset($depedencies['reflection\class']))->isTrue()
+				->variable($mockController->getMockClass())->isNull()
+				->array($mockController->getInvokers())->isEmpty()
+				->array($mockController->getCalls())->isEmpty()
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\mock\controller']['reflection\class'] = $reflectionClassInjector = function() {})
+			->and($mockController = new mock\controller($depedencies))
+			->then
+				->object($mockControllerDepedencies = $mockController->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+				->object($mockControllerDepedencies['reflection\class'])->isIdenticalTo($reflectionClassInjector)
+				->variable($mockController->getMockClass())->isNull()
+				->array($mockController->getInvokers())->isEmpty()
+				->array($mockController->getCalls())->isEmpty()
+		;
+	}
+
+	public function testSetDepedencies()
+	{
+		$this
+			->if($mockController = new mock\controller())
+			->then
+				->object($mockController->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($mockController)
+				->object($mockController->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\mock\controller'])
+				->boolean(isset($depedencies['mageekguy\atoum\mock\controller']['reflection\class']))->isTrue()
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\mock\controller']['reflection\class'] = $reflectionClassInjector = function() {})
+			->then
+				->object($mockController->setDepedencies($depedencies))->isIdenticalTo($mockController)
+				->object($mockController->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\mock\controller'])
+				->object($depedencies['mageekguy\atoum\mock\controller']['reflection\class'])->isIdenticalTo($reflectionClassInjector)
 		;
 	}
 

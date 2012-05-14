@@ -9,6 +9,7 @@ use
 
 require_once __DIR__ . '/../runner.php';
 
+/** @engine inline */
 class runner extends atoum\test
 {
 	public function testClass()
@@ -39,11 +40,11 @@ class runner extends atoum\test
 				->boolean(isset($depedencies['locale']))->isTrue()
 				->boolean(isset($depedencies['includer']))->isTrue()
 				->boolean(isset($depedencies['score']))->isTrue()
+				->boolean(isset($depedencies['glob\iterator']))->isTrue()
 				->boolean(isset($depedencies['directory\iterator']))->isTrue()
 				->boolean(isset($depedencies['reflection\class']))->isTrue()
 				->boolean(isset($depedencies['observers\storage']))->isTrue()
 				->boolean(isset($depedencies['reports\storage']))->isTrue()
-				->boolean(isset($depedencies['glob\iterator']))->isTrue()
 				->variable($runner->getRunningDuration())->isNull()
 				->boolean($runner->codeCoverageIsEnabled())->isTrue()
 				->variable($runner->getDefaultReportTitle())->isNull()
@@ -60,11 +61,11 @@ class runner extends atoum\test
 				->boolean(isset($depedencies['mageekguy\atoum\runner']['locale']))->isTrue()
 				->boolean(isset($depedencies['mageekguy\atoum\runner']['includer']))->isTrue()
 				->boolean(isset($depedencies['mageekguy\atoum\runner']['score']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\runner']['glob\iterator']))->isTrue()
 				->boolean(isset($depedencies['mageekguy\atoum\runner']['directory\iterator']))->isTrue()
 				->boolean(isset($depedencies['mageekguy\atoum\runner']['reflection\class']))->isTrue()
 				->boolean(isset($depedencies['mageekguy\atoum\runner']['observers\storage']))->isTrue()
 				->boolean(isset($depedencies['mageekguy\atoum\runner']['reports\storage']))->isTrue()
-				->boolean(isset($depedencies['mageekguy\atoum\runner']['glob\iterator']))->isTrue()
 				->variable($runner->getRunningDuration())->isNull()
 				->boolean($runner->codeCoverageIsEnabled())->isTrue()
 				->variable($runner->getDefaultReportTitle())->isNull()
@@ -92,6 +93,46 @@ class runner extends atoum\test
 				->boolean($runner->codeCoverageIsEnabled())->isTrue()
 				->variable($runner->getDefaultReportTitle())->isNull()
 				->array($runner->getObservers())->isEmpty()
+		;
+	}
+
+	public function testSetDepedencies()
+	{
+		$this
+			->if($runner = new atoum\runner())
+			->then
+				->object($runner->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($runner)
+				->object($runner->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\runner'])
+				->boolean(isset($depedencies['mageekguy\atoum\runner']['adapter']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\runner']['locale']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\runner']['includer']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\runner']['score']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\runner']['glob\iterator']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\runner']['directory\iterator']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\runner']['reflection\class']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\runner']['observers\storage']))->isTrue()
+				->boolean(isset($depedencies['mageekguy\atoum\runner']['reports\storage']))->isTrue()
+			->if($depedencies['mageekguy\atoum\runner']['adapter'] = $adapterInjector = function() {})
+			->and($depedencies['mageekguy\atoum\runner']['locale'] = $localeInjector = function() {})
+			->and($depedencies['mageekguy\atoum\runner']['includer'] = $includerInjector = function() {})
+			->and($depedencies['mageekguy\atoum\runner']['score'] = $scoreInjector = function() {})
+			->and($depedencies['mageekguy\atoum\runner']['glob\iterator'] = $globIteratorInjector = function() {})
+			->and($depedencies['mageekguy\atoum\runner']['directory\iterator'] = $directoryIteratorInjector = function() {})
+			->and($depedencies['mageekguy\atoum\runner']['reflection\class'] = $reflectionClassInjector = function() {})
+			->and($depedencies['mageekguy\atoum\runner']['observers\storage'] = $observersStorageInjector = function() {})
+			->and($depedencies['mageekguy\atoum\runner']['reports\storage'] = $reportsStorageInjector = function() {})
+			->then
+				->object($runner->setDepedencies($depedencies))->isIdenticalTo($runner)
+				->object($runnerDepedencies = $runner->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\runner'])
+				->object($runnerDepedencies['adapter'])->isIdenticalTo($adapterInjector)
+				->object($runnerDepedencies['locale'])->isIdenticalTo($localeInjector)
+				->object($runnerDepedencies['includer'])->isIdenticalTo($includerInjector)
+				->object($runnerDepedencies['score'])->isIdenticalTo($scoreInjector)
+				->object($runnerDepedencies['glob\iterator'])->isIdenticalTo($globIteratorInjector)
+				->object($runnerDepedencies['directory\iterator'])->isIdenticalTo($directoryIteratorInjector)
+				->object($runnerDepedencies['reflection\class'])->isIdenticalTo($reflectionClassInjector)
+				->object($runnerDepedencies['observers\storage'])->isIdenticalTo($observersStorageInjector)
+				->object($runnerDepedencies['reports\storage'])->isIdenticalTo($reportsStorageInjector)
 		;
 	}
 
