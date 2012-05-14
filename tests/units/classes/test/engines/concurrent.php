@@ -25,6 +25,25 @@ class concurrent extends atoum\test
 		;
 	}
 
+	public function testSetDepedencies()
+	{
+		$this
+			->if($engine = new engines\concurrent())
+			->then
+				->object($engine->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($engine)
+				->object($engineDepedencies = $engine->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\test\engines\concurrent'])
+				->boolean(isset($engineDepedencies['score']))->isTrue()
+				->boolean(isset($engineDepedencies['adapter']))->isTrue()
+			->if($depedencies['mageekguy\atoum\test\engines\concurrent']['score'] = $scoreInjector = function() {})
+			->and($depedencies['mageekguy\atoum\test\engines\concurrent']['adapter'] = $adapterInjector = function() {})
+			->then
+				->object($engine->setDepedencies($depedencies))->isIdenticalTo($engine)
+				->object($engineDepedencies = $engine->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\test\engines\concurrent'])
+				->object($engineDepedencies['score'])->isIdenticalTo($scoreInjector)
+				->object($engineDepedencies['adapter'])->isIdenticalTo($adapterInjector)
+		;
+	}
+
 	public function testIsAsynchronous()
 	{
 		$this
