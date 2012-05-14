@@ -89,6 +89,23 @@ class builder extends atoum\test
 		;
 	}
 
+	public function testSetDepedencies()
+	{
+		$this
+			->if($builder = new scripts\builder($name = uniqid()))
+			->then
+				->object($builder->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($builder)
+				->object($builderDepedencies = $builder->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\scripts\builder'])
+				->boolean(isset($builderDepedencies['locale']))->isTrue()
+				->boolean(isset($builderDepedencies['adapter']))->isTrue()
+				->boolean(isset($builderDepedencies['arguments\parser']))->isTrue()
+				->boolean(isset($builderDepedencies['writers\output']))->isTrue()
+				->boolean(isset($builderDepedencies['writers\error']))->isTrue()
+				->boolean(isset($builderDepedencies['superglobals']))->isTrue()
+				->boolean(isset($builderDepedencies['vcs\svn']))->isTrue()
+		;
+	}
+
 	public function testSetVersion()
 	{
 		$this
