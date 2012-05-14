@@ -60,6 +60,19 @@ class depedencies extends atoum\test
 		;
 	}
 
+	public function testOffsetGet()
+	{
+		$this
+			->if($depedencies = new atoum\depedencies())
+			->then
+				->object($depedencies[$class = uniqid()])->isInstanceOf($depedencies)
+				->boolean(isset($depedencies[$class]))->isTrue()
+			->if($depedencies['mageekguy\atoum\test'] = $testDepedencies = new atoum\depedencies())
+			->then
+				->object($depedencies[$this])->isIdenticalTo($testDepedencies)
+		;
+	}
+
 	public function testLock()
 	{
 		$this
