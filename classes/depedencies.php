@@ -6,12 +6,6 @@ class depedencies implements \arrayAccess, \serializable
 {
 	protected $lock = false;
 	protected $injectors = array();
-	protected $defaultInjector = null;
-
-	public function __construct()
-	{
-		$this->setDefaultInjector(function() { return new static(); });
-	}
 
 	public function serialize()
 	{
@@ -26,13 +20,6 @@ class depedencies implements \arrayAccess, \serializable
 	public function getInjectors()
 	{
 		return $this->injectors;
-	}
-
-	public function setDefaultInjector($mixed)
-	{
-		$this->defaultInjector = self::buildInjector($mixed);
-
-		return $this;
 	}
 
 	public function lock()
@@ -63,26 +50,21 @@ class depedencies implements \arrayAccess, \serializable
 
 	public function offsetGet($mixed)
 	{
-		$key = self::getKey($mixed);
+		$parent = $key = self::getKey($mixed);
 
-		if (isset($this->injectors[$key]) === false)
+		while ($parent !== false)
 		{
-			$parent = get_parent_class($key);
-
-			while ($parent !== false)
+			if (isset($this->injectors[$parent]) === true)
 			{
-				if (isset($this->injectors[$parent]) === true)
-				{
-					return $this->injectors[$parent];
-				}
-				else
-				{
-					$parent = get_parent_class($parent);
-				}
+				return $this->injectors[$parent];
 			}
-
-			$this->injectors[$key] = $this->defaultInjector->__invoke();
+			else
+			{
+				$parent = get_parent_class($parent);
+			}
 		}
+
+		$this->injectors[$key] = new static();
 
 		return $this->injectors[$key];
 	}
@@ -102,11 +84,6 @@ class depedencies implements \arrayAccess, \serializable
 	public function offsetExists($mixed)
 	{
 		return isset($this->injectors[self::getKey($mixed)]);
-	}
-
-	public function isLocked($mixed)
-	{
-		return ($this->lock === true && isset($this->injectors[self::getKey($mixed)]) === true);
 	}
 
 	protected static function getKey($value)
