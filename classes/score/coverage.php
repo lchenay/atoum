@@ -8,7 +8,7 @@ use
 	mageekguy\atoum\exceptions
 ;
 
-class coverage implements \countable
+class coverage implements \countable, \serializable
 {
 	protected $depedencies = null;
 	protected $classes = array();
@@ -21,6 +21,35 @@ class coverage implements \countable
 	public function __construct(atoum\depedencies $depedencies = null)
 	{
 		$this->setDepedencies($depedencies ?: new atoum\depedencies());
+	}
+
+	public function serialize()
+	{
+		$this->__construct();
+
+		return serialize(array(
+				$this->classes,
+				$this->lines,
+				$this->methods,
+				$this->excludedClasses,
+				$this->excludedNamespaces,
+				$this->excludedDirectories
+			)
+		);
+	}
+
+	public function unserialize($string)
+	{
+		list(
+			$this->classes,
+			$this->lines,
+			$this->methods,
+			$this->excludedClasses,
+			$this->excludedNamespaces,
+			$this->excludedDirectories
+		) = unserialize($string);
+
+		return $this;
 	}
 
 	public function setDepedencies(atoum\depedencies $depedencies)

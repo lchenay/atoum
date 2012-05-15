@@ -8,7 +8,7 @@ use
 	mageekguy\atoum\exceptions
 ;
 
-class score
+class score implements \serializable
 {
 	private $depedencies = null;
 	private $passAssertions = 0;
@@ -20,6 +20,7 @@ class score
 	private $durations = array();
 	private $memoryUsages = array();
 	private $coverage = null;
+	private $uncompletedTests = array();
 	private $uncompletedMethods = array();
 	private $case = null;
 	private $dataSetKey = null;
@@ -28,7 +29,6 @@ class score
 	private $phpVersion = null;
 	private $atoumPath = null;
 	private $atoumVersion = null;
-	private $incomptedTests = array();
 
 	private static $failId = 0;
 
@@ -51,6 +51,53 @@ class score
 		return $this;
 	}
 
+	public function serialize()
+	{
+		return serialize(array(
+				$this->passAssertions,
+				$this->failAssertions,
+				$this->exceptions,
+				$this->runtimeExceptions,
+				$this->errors,
+				$this->outputs,
+				$this->durations,
+				$this->memoryUsages,
+				$this->coverage,
+				$this->uncompletedTests,
+				$this->uncompletedMethods,
+				$this->phpPath,
+				$this->phpVersion,
+				$this->atoumPath,
+				$this->atoumVersion
+			)
+		);
+	}
+
+	public function unserialize($string)
+	{
+		$this->__construct();
+
+		list(
+			$this->passAssertions,
+			$this->failAssertions,
+			$this->exceptions,
+			$this->runtimeExceptions,
+			$this->errors,
+			$this->outputs,
+			$this->durations,
+			$this->memoryUsages,
+			$this->coverage,
+			$this->uncompletedTests,
+			$this->uncompletedMethods,
+			$this->phpPath,
+			$this->phpVersion,
+			$this->atoumPath,
+			$this->atoumVersion
+		) = unserialize($string);
+
+		return $this;
+	}
+
 	public function getDepedencies()
 	{
 		return $this->depedencies;
@@ -58,17 +105,23 @@ class score
 
 	public function reset()
 	{
-		$this->phpPath = null;
-		$this->phpVersion = null;
-		$this->atoumPath = null;
-		$this->atoumVersion = null;
 		$this->passAssertions = 0;
 		$this->failAssertions = array();
 		$this->exceptions = array();
+		$this->runtimeExceptions = array();
 		$this->errors = array();
 		$this->outputs = array();
 		$this->durations = array();
 		$this->memoryUsages = array();
+		$this->coverage->reset();
+		$this->uncompletedTests = array();
+		$this->uncompletedMethods = array();
+		$this->case = null;
+		$this->dataSetKey = null;
+		$this->phpPath = null;
+		$this->phpVersion = null;
+		$this->atoumPath = null;
+		$this->atoumVersion = null;
 
 		return $this;
 	}
@@ -390,6 +443,11 @@ class score
 		return sizeof($this->errors);
 	}
 
+	public function getUncompletedTestNumber()
+	{
+		return sizeof($this->uncompletedTests);
+	}
+
 	public function getUncompletedMethodNumber()
 	{
 		return sizeof($this->uncompletedMethods);
@@ -398,6 +456,11 @@ class score
 	public function getCoverage()
 	{
 		return $this->coverage;
+	}
+
+	public function getUncompletedTests()
+	{
+		return $this->uncompletedTests;
 	}
 
 	public function getUncompletedMethods()
