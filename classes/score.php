@@ -8,7 +8,7 @@ use
 	mageekguy\atoum\exceptions
 ;
 
-class score implements \serializable
+class score
 {
 	private $depedencies = null;
 	private $passAssertions = 0;
@@ -28,7 +28,7 @@ class score implements \serializable
 	private $phpVersion = null;
 	private $atoumPath = null;
 	private $atoumVersion = null;
-	private $uncompletedTests = array();
+	private $incomptedTests = array();
 
 	private static $failId = 0;
 
@@ -38,53 +38,6 @@ class score implements \serializable
 			->setDepedencies($depedencies ?: new depedencies())
 			->setCoverage($this->depedencies['coverage']($this->depedencies))
 		;
-	}
-
-	public function serialize()
-	{
-		return serialize(array(
-				$this->passAssertions,
-				$this->failAssertions,
-				$this->exceptions,
-				$this->runtimeExceptions,
-				$this->errors,
-				$this->outputs,
-				$this->durations,
-				$this->memoryUsages,
-				$this->coverage,
-				$this->uncompletedMethods,
-				$this->phpPath,
-				$this->phpVersion,
-				$this->atoumPath,
-				$this->atoumVersion,
-				$this->uncompletedTests
-			)
-		);
-	}
-
-	public function unserialize($string)
-	{
-		$this->__construct();
-
-		list(
-			$this->passAssertions,
-			$this->failAssertions,
-			$this->exceptions,
-			$this->runtimeExceptions,
-			$this->errors,
-			$this->outputs,
-			$this->durations,
-			$this->memoryUsages,
-			$this->coverage,
-			$this->uncompletedMethods,
-			$this->phpPath,
-			$this->phpVersion,
-			$this->atoumPath,
-			$this->atoumVersion,
-			$this->uncompletedTests,
-		) = unserialize($string);
-
-		return $this;
 	}
 
 	public function setDepedencies(depedencies $depedencies)
@@ -105,24 +58,17 @@ class score implements \serializable
 
 	public function reset()
 	{
-		$this->passAssertions = 0;
-		$this->failAssertions = array();
-		$this->exceptions = array();
-		$this->runtimeExceptions = array();
-		$this->errors = array();
-		$this->outputs = array();
-		$this->durations = array();
-		$this->memoryUsages = array();
-		$this->coverage->reset();
-		$this->uncompletedMethods = array();
-		$this->case = null;
-		$this->dataSetKey = null;
-		$this->dataSetProvider = null;
 		$this->phpPath = null;
 		$this->phpVersion = null;
 		$this->atoumPath = null;
 		$this->atoumVersion = null;
-		$this->uncompletedTests = array();
+		$this->passAssertions = 0;
+		$this->failAssertions = array();
+		$this->exceptions = array();
+		$this->errors = array();
+		$this->outputs = array();
+		$this->durations = array();
+		$this->memoryUsages = array();
 
 		return $this;
 	}
@@ -449,11 +395,6 @@ class score implements \serializable
 		return sizeof($this->uncompletedMethods);
 	}
 
-	public function getUncompletedTestNumber()
-	{
-		return sizeof($this->uncompletedTests);
-	}
-
 	public function getCoverage()
 	{
 		return $this->coverage;
@@ -462,11 +403,6 @@ class score implements \serializable
 	public function getUncompletedMethods()
 	{
 		return $this->uncompletedMethods;
-	}
-
-	public function getUncompletedTests()
-	{
-		return $this->uncompletedTests;
 	}
 
 	public function getCase()

@@ -24,28 +24,6 @@ class depedencies extends atoum\test
 		;
 	}
 
-	public function testSerialize()
-	{
-		$this
-			->if($depedencies = new atoum\depedencies())
-			->then
-				->variable($depedencies->serialize())->isNull()
-		;
-	}
-
-	public function testUnserialize()
-	{
-		$this
-			->if($depedencies = new atoum\depedencies())
-			->then
-				->object($depedencies->unserialize(uniqid()))->isIdenticalTo($depedencies)
-			->if($depedencies[$key = uniqid()] = uniqid())
-			->then
-				->object($depedencies->unserialize(uniqid()))->isIdenticalTo($depedencies)
-				->boolean(isset($depedencies[$key]))->isTrue()
-		;
-	}
-
 	public function testOffsetSet()
 	{
 		$this
