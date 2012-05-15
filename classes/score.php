@@ -183,6 +183,11 @@ class score implements \serializable
 
 	public function addPass($pass)
 	{
+		if ($pass < 0)
+		{
+			throw new exceptions\logic\invalidArgument('Argument must be greater than or equal to 0');
+		}
+
 		$this->passAssertions += $pass;
 
 		return $this;

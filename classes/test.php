@@ -715,6 +715,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 			}
 			catch (asserter\exception $exception)
 			{
+				$this->score->addFail($exception->getFailFile(), $exception->getFailLine(), $exception->getFailClass(), $exception->getFailMethod(), $exception->getAsserter(), $exception->getMessage());
 			}
 			catch (test\exceptions\runtime $exception)
 			{
@@ -722,7 +723,9 @@ abstract class test implements observable, adapter\aggregator, \countable
 			}
 			catch (\exception $exception)
 			{
-				$this->addExceptionToScore($exception);
+				list($file, $line) = $this->getBacktrace($exception->getTrace());
+
+				$this->score->addException($file, $line, $this->class, $this->currentMethod, $exception);
 			}
 
 			$this->score->addPass(asserter::getPass());
@@ -940,15 +943,6 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 	protected function tearDown()
 	{
-		return $this;
-	}
-
-	protected function addExceptionToScore(\exception $exception)
-	{
-		list($file, $line) = $this->getBacktrace($exception->getTrace());
-
-		$this->score->addException($file, $line, $this->class, $this->currentMethod, $exception);
-
 		return $this;
 	}
 

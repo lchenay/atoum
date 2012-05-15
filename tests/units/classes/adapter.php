@@ -24,7 +24,7 @@ class adapter extends atoum\test
 		$this
 			->if($adapter = new atoum\adapter())
 			->then
-				->string($adapter->md5($hash = uniqid()))->isEqualTo(($hash))
+				->string($adapter->md5($hash = uniqid()))->isEqualTo(md5($hash))
 		;
 	}
 }

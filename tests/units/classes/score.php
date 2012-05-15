@@ -147,8 +147,16 @@ class score extends atoum\test
 				->integer($score->getPassNumber())->isEqualTo(1)
 				->object($score->addPass(1))->isIdenticalTo($score)
 				->integer($score->getPassNumber())->isEqualTo(2)
-				->object($score->addPass($pass = rand(1, PHP_INT_MAX)))->isIdenticalTo($score)
+				->object($score->addPass($pass = rand(3, PHP_INT_MAX)))->isIdenticalTo($score)
 				->integer($score->getPassNumber())->isEqualTo(2 + $pass)
+				->object($score->addPass(0))->isIdenticalTo($score)
+				->integer($score->getPassNumber())->isEqualTo(2 + $pass)
+				->exception(function() use ($score) {
+						$score->addPass(- rand(1, PHP_INT_MAX));
+					}
+				)
+					->isInstanceOf('mageekguy\atoum\exceptions\logic\invalidArgument')
+					->hasMessage('Argument must be greater than or equal to 0')
 		;
 	}
 
@@ -771,9 +779,9 @@ class score extends atoum\test
 			->if($score->addFail(uniqid(), rand(1, PHP_INT_MAX), uniqid(), uniqid(), new atoum\asserters\integer(new atoum\asserter\generator()), uniqid()))
 			->then
 				->integer($score->getPassNumber())->isZero()
-			->if($score->addPass(rand(1, PHP_INT_MAX)))
+			->if($score->addPass($pass = rand(1, PHP_INT_MAX)))
 			->then
-				->integer($score->getPassNumber())->isEqualTo(1)
+				->integer($score->getPassNumber())->isEqualTo($pass)
 		;
 	}
 
@@ -965,7 +973,7 @@ class score extends atoum\test
 				->array($score->getDurations())->isEmpty()
 				->array($score->getMemoryUsages())->isEmpty()
 				->array($score->getUncompletedMethods())->isEmpty()
-			->if($score->addPass(rand(1, PHP_INT_MAX)))
+			->if($score->addPass(1))
 			->and($score->addFail(uniqid(), rand(1, PHP_INT_MAX), uniqid(), uniqid(), new atoum\asserters\integer(new atoum\asserter\generator()), uniqid()))
 			->and($score->addException(uniqid(), rand(1, PHP_INT_MAX), uniqid(), uniqid(), new \exception()))
 			->and($score->addError(uniqid(), rand(1, PHP_INT_MAX), uniqid(), uniqid(), E_ERROR, uniqid(), uniqid(), rand(1, PHP_INT_MAX)))
@@ -990,7 +998,7 @@ class score extends atoum\test
 				->integer($score->getDurationNumber())->isEqualTo(1)
 				->integer($score->getMemoryUsageNumber())->isEqualTo(1)
 				->integer($score->getUncompletedMethodNumber())->isEqualTo(1)
-			->if($otherScore->addPass())
+			->if($otherScore->addPass(1))
 			->and($otherScore->addFail(uniqid(), rand(1, PHP_INT_MAX), uniqid(), uniqid(), new atoum\asserters\integer(new atoum\asserter\generator()), uniqid()))
 			->and($otherScore->addException(uniqid(), rand(1, PHP_INT_MAX), uniqid(), uniqid(), new \exception()))
 			->and($otherScore->addError(uniqid(), rand(1, PHP_INT_MAX), uniqid(), uniqid(), E_ERROR, uniqid(), uniqid(), rand(1, PHP_INT_MAX)))
