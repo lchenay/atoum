@@ -607,6 +607,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 	{
 		if ($this->methodIsIgnored($testMethod, $tags) === false)
 		{
+			asserter::resetPass();
 
 			$mockGenerator = $this->getMockGenerator();
 			$mockNamespacePattern = '/^' . $mockGenerator->getDefaultNamespace() . '\\\/';
@@ -714,10 +715,6 @@ abstract class test implements observable, adapter\aggregator, \countable
 			}
 			catch (asserter\exception $exception)
 			{
-				if ($this->score->failExists($exception) === false)
-				{
-					$this->addExceptionToScore($exception);
-				}
 			}
 			catch (test\exceptions\runtime $exception)
 			{
@@ -727,6 +724,8 @@ abstract class test implements observable, adapter\aggregator, \countable
 			{
 				$this->addExceptionToScore($exception);
 			}
+
+			$this->score->addPass(asserter::getPass());
 
 			$this->afterTestMethod($this->currentMethod);
 

@@ -181,9 +181,9 @@ class score implements \serializable
 		return $this;
 	}
 
-	public function addPass()
+	public function addPass($pass)
 	{
-		$this->passAssertions++;
+		$this->passAssertions += $pass;
 
 		return $this;
 	}
@@ -562,13 +562,6 @@ class score implements \serializable
 		unset($this->errors[$key]);
 
 		return $this;
-	}
-
-	public function failExists(atoum\asserter\exception $exception)
-	{
-		$id = $exception->getCode();
-
-		return (sizeof(array_filter($this->failAssertions, function($assertion) use ($id) { return ($assertion['id'] === $id); })) > 0);
 	}
 
 	private static function getMethods(array $array)

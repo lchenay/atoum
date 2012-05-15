@@ -12,6 +12,8 @@ abstract class asserter
 {
 	protected $generator = null;
 
+	private static $pass = 0;
+
 	public function __construct(asserter\generator $generator)
 	{
 		$this->generator = $generator;
@@ -51,11 +53,6 @@ abstract class asserter
 	public function reset()
 	{
 		return $this;
-	}
-
-	public function getScore()
-	{
-		return $this->generator->getScore();
 	}
 
 	public function getLocale()
@@ -115,18 +112,26 @@ abstract class asserter
 
 	public abstract function setWith($mixed);
 
+	public static function getPass()
+	{
+		return self::$pass;
+	}
+
+	public static function resetPass()
+	{
+		self::$pass = 0;
+	}
+
 	protected function pass()
 	{
-		$this->generator->asserterPass($this);
+		self::$pass++;
 
 		return $this;
 	}
 
 	protected function fail($reason)
 	{
-		$this->generator->asserterFail($this, $reason);
-
-		return $this;
+		throw new asserter\exception($this, $reason);
 	}
 }
 
