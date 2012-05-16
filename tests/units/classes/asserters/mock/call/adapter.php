@@ -76,40 +76,38 @@ class adapter extends atoum\test
 	public function testGetFirstCall()
 	{
 		$this
-			->if($call = new call\adapter(
-					new asserters\mock(new asserter\generator()),
-					$adapter = new test\adapter(),
-					'md5'
-				)
-			)
+			->if($call = new call\adapter(new asserters\mock(new asserter\generator()), $adapter = new test\adapter(), 'md5'))
 			->then
 				->variable($call->getFirstCall())->isNull()
-				->when(function() { $otherAdapter = new test\adapter(); $otherAdapter->md5(uniqid()); })
-					->variable($call->getFirstCall())->isNull()
-				->when(function() use ($adapter) { $adapter->md5(uniqid()); })
-					->integer($call->getFirstCall())->isEqualTo(2)
-				->when(function() use ($adapter) { $adapter->md5(uniqid()); })
-					->integer($call->getFirstCall())->isEqualTo(2)
+			->if($otherAdapter = new test\adapter())
+			->and($otherAdapter->md5(uniqid()))
+			->then
+				->variable($call->getFirstCall())->isNull()
+			->if($adapter->md5(uniqid()))
+			->then
+				->integer($call->getFirstCall())->isEqualTo(2)
+			->if($adapter->md5(uniqid()))
+			->then
+				->integer($call->getFirstCall())->isEqualTo(2)
 		;
 	}
 
 	public function testGetLastCall()
 	{
 		$this
-			->if($call = new call\adapter(
-					new asserters\mock(new asserter\generator()),
-					$adapter = new test\adapter(),
-					'md5'
-				)
-			)
+			->if($call = new call\adapter(new asserters\mock(new asserter\generator()), $adapter = new test\adapter(), 'md5'))
 			->then
 				->variable($call->getLastCall())->isNull()
-				->when(function() { $otherAdapter = new test\adapter(); $otherAdapter->md5(uniqid()); })
-					->variable($call->getLastCall())->isNull()
-				->when(function() use ($adapter) { $adapter->md5(uniqid()); })
-					->integer($call->getLastCall())->isEqualTo(2)
-				->when(function() use ($adapter) { $adapter->md5(uniqid()); })
-					->integer($call->getLastCall())->isEqualTo(3)
+			->if($otherAdapter = new test\adapter())
+			->and($otherAdapter->md5(uniqid()))
+			->then
+				->variable($call->getLastCall())->isNull()
+			->if($adapter->md5(uniqid()))
+			->then
+				->integer($call->getLastCall())->isEqualTo(2)
+			->if($adapter->md5(uniqid()))
+			->then
+				->integer($call->getLastCall())->isEqualTo(3)
 		;
 	}
 }

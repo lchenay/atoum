@@ -8,31 +8,13 @@ use
 
 class exception extends \runtimeException
 {
-	protected $asserter = '';
-	protected $failFile = '';
-	protected $failLine = 0;
-	protected $failClass = '';
-	protected $failMethod = '';
+	protected $asserter = null;
 
 	public function __construct(atoum\asserter $asserter, $message, $code = 0, \exception $previous = null)
 	{
 		parent::__construct($message, $code, $previous);
 
-		$traces = array_reverse($this->getTrace());
-
-		foreach ($traces as $level => $trace)
-		{
-			if (isset($trace['class']) === true && $asserter instanceof $trace['class'])
-			{
-				$this->asserter = $trace['class'] . '::' . $trace['function'] . '()';
-				$this->failFile = $trace['file'];
-				$this->failLine = $trace['line'];
-				$this->failClass = $traces[$level - 1]['class'];
-				$this->failMethod = $traces[$level - 1]['function'];
-
-				break;
-			}
-		}
+		$this->asserter = $asserter;
 	}
 
 	public function getAsserter()
@@ -40,24 +22,27 @@ class exception extends \runtimeException
 		return $this->asserter;
 	}
 
-	public function getFailFile()
+	public function getFailLine($file)
 	{
-		return $this->failFile;
+		return (($trace = $this->getTraceInFile($file)) === null || isset($trace['line']) === false ? null : $trace['line']);
 	}
 
-	public function getFailLine()
+	public function getFailCall($file)
 	{
-		return $this->failLine;
+		return (($trace = $this->getTraceInFile($file)) === null || isset($trace['function']) === false ? null : get_class($this->asserter) . '::' . $trace['function'] . '()');
 	}
 
-	public function getFailClass()
+	protected function getTraceInFile($file)
 	{
-		return $this->failClass;
-	}
+		foreach (array_reverse($this->getTrace()) as $trace)
+		{
+			if (isset($trace['file']) === true && $trace['file'] === $file)
+			{
+				return $trace;
+			}
+		}
 
-	public function getFailMethod()
-	{
-		return $this->failMethod;
+		return null;
 	}
 }
 

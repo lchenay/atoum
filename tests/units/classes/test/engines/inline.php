@@ -33,6 +33,7 @@ class inline extends atoum\test
 				->object($engine->run($test = new \mock\mageekguy\atoum\test()))->isIdenticalTo($engine)
 			->if($test->getMockController()->getCurrentMethod = $method = uniqid())
 			->and($test->getMockController()->runTestMethod = $test)
+			->and($test->getMockController()->resetCalls())
 			->then
 				->object($engine->run($test))->isIdenticalTo($engine)
 				->mock($test)

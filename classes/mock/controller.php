@@ -20,8 +20,6 @@ class controller extends test\adapter
 
 	public function __construct(atoum\depedencies $depedencies = null)
 	{
-		parent::__construct();
-
 		$this
 			->setDepedencies($depedencies ?: new atoum\depedencies())
 			->controlNextNewMock()

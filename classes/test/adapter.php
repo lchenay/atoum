@@ -13,22 +13,6 @@ class adapter extends atoum\adapter
 	protected $invokers = array();
 
 	private static $callsNumber = 0;
-	private static $instances = null;
-
-	public function __construct()
-	{
-		if (self::$instances === null)
-		{
-			self::$instances = new \splObjectStorage();
-		}
-
-		self::$instances->attach($this);
-	}
-
-	public function __destruct()
-	{
-		self::$instances->detach($this);
-	}
 
 	public function __set($functionName, $mixed)
 	{
@@ -177,17 +161,6 @@ class adapter extends atoum\adapter
 	public static function getCallsNumber()
 	{
 		return self::$callsNumber;
-	}
-
-	public static function resetCallsForAllInstances()
-	{
-		if (self::$instances !== null)
-		{
-			foreach (self::$instances as $instance)
-			{
-				$instance->resetCalls();
-			}
-		}
 	}
 
 	protected static function isLanguageConstruct($functionName)

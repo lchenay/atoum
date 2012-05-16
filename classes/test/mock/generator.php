@@ -30,7 +30,10 @@ class generator extends mock\generator
 
 	public function setTest(atoum\test $test)
 	{
-		$this->test = $test;
+		if ($this->test !== $test)
+		{
+			$this->test = $test;
+		}
 
 		return $this;
 	}

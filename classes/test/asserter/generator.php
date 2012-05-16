@@ -11,9 +11,9 @@ class generator extends asserter\generator
 {
 	protected $test = null;
 
-	public function __construct(atoum\test $test, atoum\locale $locale = null)
+	public function __construct(atoum\test $test, atoum\depedencies $depedencies = null)
 	{
-		parent::__construct($locale ?: $test->getLocale());
+		parent::__construct($depedencies);
 
 		$this->setTest($test);
 	}
@@ -30,7 +30,10 @@ class generator extends asserter\generator
 
 	public function setTest(atoum\test $test)
 	{
-		$this->test = $test;
+		if ($this->test !== $test)
+		{
+			$this->test = $test;
+		}
 
 		return $this;
 	}

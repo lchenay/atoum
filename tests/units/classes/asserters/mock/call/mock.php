@@ -96,44 +96,38 @@ class mock extends atoum\test
 	public function testGetFirstCall()
 	{
 		$this
-			->if($call = new call\mock(
-					new asserters\mock(new asserter\generator()),
-					$mock = new \mock\mageekguy\atoum\tests\units\asserters\mock\call\dummy(),
-					'foo'
-				)
-			)
+			->if($call = new call\mock(new asserters\mock(new asserter\generator()), $mock = new \mock\mageekguy\atoum\tests\units\asserters\mock\call\dummy(), 'foo'))
 			->then
 				->variable($call->getFirstCall())->isNull()
 			->if($otherMock = new \mock\mageekguy\atoum\tests\units\asserters\mock\call\dummy())
 			->and($otherMock->foo())
 			->then
 				->variable($call->getFirstCall())->isNull()
-				->when(function() use ($mock) { $mock->foo(); })
-					->integer($call->getFirstCall())->isEqualTo(2)
-				->when(function() use ($mock) { $mock->foo(); })
-					->integer($call->getFirstCall())->isEqualTo(2)
+			->if($mock->foo())
+			->then
+				->integer($call->getFirstCall())->isEqualTo(2)
+			->if($mock->foo())
+			->then
+				->integer($call->getFirstCall())->isEqualTo(2)
 		;
 	}
 
 	public function testGetLastCall()
 	{
 		$this
-			->if($call = new call\mock(
-					new asserters\mock(new asserter\generator()),
-					$mock = new \mock\mageekguy\atoum\tests\units\asserters\mock\call\dummy(),
-					'foo'
-				)
-			)
+			->if($call = new call\mock(new asserters\mock(new asserter\generator()), $mock = new \mock\mageekguy\atoum\tests\units\asserters\mock\call\dummy(), 'foo'))
 			->then
 				->variable($call->getLastCall())->isNull()
 			->if($otherMock = new \mock\mageekguy\atoum\tests\units\asserters\mock\call\dummy())
 			->and($otherMock->foo())
 			->then
 				->variable($call->getLastCall())->isNull()
-				->when(function() use ($mock) { $mock->foo(); })
-					->integer($call->getLastCall())->isEqualTo(2)
-				->when(function() use ($mock) { $mock->foo(); })
-					->integer($call->getLastCall())->isEqualTo(3)
+			->if($mock->foo())
+			->then
+				->integer($call->getLastCall())->isEqualTo(2)
+			->if($mock->foo())
+			->then
+				->integer($call->getLastCall())->isEqualTo(3)
 		;
 	}
 }

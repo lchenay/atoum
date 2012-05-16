@@ -37,6 +37,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 	private $testedClass = null;
 	private $depedencies = null;
 	private $adapter = null;
+	private $locale = null;
 	private $assertionManager = null;
 	private $asserterGenerator = null;
 	private $score = null;
@@ -127,12 +128,10 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 		$this
 			->runTestMethods($this->getTestMethods())
-			->getAsserterGenerator()
-				->setAlias('array', 'phpArray')
-				->setAlias('class', 'phpClass')
+			->setAsserterGenerator($this->depedencies['asserter\generator']($this, $this->depedencies))
+			->setAssertionManager($this->depedencies['assertion\manager']())
+			->setMockGenerator($this->depedencies['mock\generator']($this))
 		;
-
-		$this->setAssertionManager($this->depedencies['assertion\manager']());
 	}
 
 	public function __toString()
@@ -163,12 +162,18 @@ abstract class test implements observable, adapter\aggregator, \countable
 		$this->depedencies['reflection\method'] = function($class, $method) { return new \reflectionMethod($class, $method); };
 		$this->depedencies['annotations\extractor'] = function() { return new annotations\extractor(); };
 		$this->depedencies['assertion\manager'] = function() { return new test\assertion\manager(); };
-		$this->depedencies['asserter\generator'] = function($test) { return new test\asserter\generator($test); };
+		$this->depedencies['asserter\generator'] = function($test, $depedencies) { return new test\asserter\generator($test, $depedencies); };
 		$this->depedencies['mock\generator'] = function($test) { return new test\mock\generator($test); };
 		$this->depedencies['engines\concurrent'] = function($depedencies) { return new test\engines\concurrent($depedencies); };
 		$this->depedencies['engines\isolate'] = function($depedencies) { return new test\engines\isolate($depedencies); };
 		$this->depedencies['engines\inline'] = function($depedencies) { return new test\engines\inline($depedencies); };
 		$this->depedencies->unlock();
+
+		$locale = & $this->locale;
+
+		$this->depedencies['mageekguy\atoum\test\asserter\generator']->lock();
+		$this->depedencies['mageekguy\atoum\test\asserter\generator']['locale'] = function() use (& $locale) { return $locale; };
+		$this->depedencies['mageekguy\atoum\test\asserter\generator']->unlock();
 
 		return $this;
 	}
@@ -301,21 +306,19 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 	public function getMockGenerator()
 	{
-		return $this->mockGenerator ?: $this->setMockGenerator($this->depedencies['mock\generator']($this))->mockGenerator;
+		return $this->mockGenerator;
 	}
 
 	public function setAsserterGenerator(test\asserter\generator $generator)
 	{
-		$this->asserterGenerator = $generator->setTest($this);
+		$this->asserterGenerator = $generator->setTest($this)->setAlias('array', 'phpArray')->setAlias('class', 'phpClass');
 
 		return $this;
 	}
 
 	public function getAsserterGenerator()
 	{
-		test\adapter::resetCallsForAllInstances();
-
-		return $this->asserterGenerator ?: $this->setAsserterGenerator($this->depedencies['asserter\generator']($this))->asserterGenerator;
+		return $this->asserterGenerator;
 	}
 
 	public function setTestNamespace($testNamespace)
@@ -715,7 +718,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 			}
 			catch (asserter\exception $exception)
 			{
-				$this->score->addFail($exception->getFailFile(), $exception->getFailLine(), $exception->getFailClass(), $exception->getFailMethod(), $exception->getAsserter(), $exception->getMessage());
+				$this->score->addFail($this->path, $exception->getFailLine($this->path), $this->getClass(), $this->getCurrentMethod(), $exception->getFailCall($this->path), $exception->getMessage());
 			}
 			catch (test\exceptions\runtime $exception)
 			{
@@ -723,9 +726,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 			}
 			catch (\exception $exception)
 			{
-				list($file, $line) = $this->getBacktrace($exception->getTrace());
-
-				$this->score->addException($file, $line, $this->class, $this->currentMethod, $exception);
+				$this->score->addException($this->path, $this->getLine($exception->getTrace()), $this->class, $this->currentMethod, $exception);
 			}
 
 			$this->score->addPass(asserter::getPass());
@@ -851,9 +852,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 	{
 		if (error_reporting() !== 0)
 		{
-			list($file, $line) = $this->getBacktrace();
-
-			$this->score->addError($file, $line, $this->class, $this->currentMethod, $errno, $errstr, $errfile, $errline);
+			$this->score->addError($this->path, $this->getLine(), $this->class, $this->currentMethod, $errno, $errstr, $errfile, $errline);
 		}
 
 		return true;
@@ -893,8 +892,6 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 	public function startCase($case)
 	{
-		test\adapter::resetCallsForAllInstances();
-
 		$this->score->setCase($case);
 
 		return $this;
@@ -902,8 +899,6 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 	public function stopCase()
 	{
-		test\adapter::resetCallsForAllInstances();
-
 		$this->score->unsetCase();
 
 		return $this;
@@ -946,23 +941,18 @@ abstract class test implements observable, adapter\aggregator, \countable
 		return $this;
 	}
 
-	protected function getBacktrace(array $trace = null)
+	protected function getLine(array $trace = null)
 	{
-		$debugBacktrace = $trace === null ? debug_backtrace(false) : $trace;
-
-		foreach ($debugBacktrace as $key => $value)
+		if ($trace === null)
 		{
-			if (isset($value['class']) === true && isset($value['function']) === true && $value['class'] === $this->class && $value['function'] === $this->currentMethod)
-			{
-				if (isset($debugBacktrace[$key - 1]) === true)
-				{
-					$key -= 1;
-				}
+			$trace = debug_backtrace(false);
+		}
 
-				return array(
-					$debugBacktrace[$key]['file'],
-					$debugBacktrace[$key]['line']
-				);
+		foreach ($trace as $key => $value)
+		{
+			if (isset($value['file']) === true && $value['file'] === $this->path)
+			{
+				return $value['line'];
 			}
 		}
 

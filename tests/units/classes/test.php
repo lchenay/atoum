@@ -105,6 +105,8 @@ namespace mageekguy\atoum\tests\units
 					->string($test->getTestNamespace())->isEqualTo(atoum\test::defaultNamespace)
 					->integer($test->getMaxChildrenNumber())->isEqualTo(666)
 					->variable($test->getBootstrapFile())->isNull()
+					->object($asserterGenerator = $test->getAsserterGenerator())->isInstanceOf('mageekguy\atoum\test\asserter\generator')
+					->object($asserterGenerator->getLocale())->isIdenticalTo($test->getLocale())
 				->if($depedencies = new atoum\depedencies())
 				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['score'] = $score = new atoum\score())
 				->and($depedencies['mageekguy\atoum\tests\units\emptyTest']['locale'] = $locale = new atoum\locale())
@@ -125,6 +127,7 @@ namespace mageekguy\atoum\tests\units
 					->string($test->getTestNamespace())->isEqualTo(atoum\test::defaultNamespace)
 					->integer($test->getMaxChildrenNumber())->isEqualTo(666)
 					->variable($test->getBootstrapFile())->isNull()
+					->object($test->getAsserterGenerator())->isInstanceOf('mageekguy\atoum\test\asserter\generator')
 			;
 		}
 
@@ -298,10 +301,9 @@ namespace mageekguy\atoum\tests\units
 			$this
 				->if($test = new emptyTest())
 				->then
-					->object($test->setAsserterGenerator($asserterGenerator = new atoum\test\asserter\generator($test)))->isIdenticalTo($test)
+					->object($test->setAsserterGenerator($asserterGenerator = new atoum\test\asserter\generator(new emptyTest())))->isIdenticalTo($test)
 					->object($test->getAsserterGenerator())->isIdenticalTo($asserterGenerator)
 					->object($asserterGenerator->getTest())->isIdenticalTo($test)
-					->object($asserterGenerator->getLocale())->isIdenticalTo($test->getLocale())
 			;
 		}
 

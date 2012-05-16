@@ -16,9 +16,20 @@ class generator extends atoum\test
 		$this
 			->if($generator = new asserter\generator())
 			->then
-				->object($generator->getLocale())->isEqualTo(new atoum\locale())
-			->if($generator = new asserter\generator($locale = new atoum\locale()))
+				->object($generatorDepedencies = $generator->getDepedencies())->isInstanceOf('mageekguy\atoum\depedencies')
+				->boolean(isset($generatorDepedencies['locale']))->isTrue()
+				->object($generator->getLocale())->isInstanceOf('mageekguy\atoum\locale')
+			->if($generator = new asserter\generator($depedencies = new atoum\depedencies()))
 			->then
+				->object($generatorDepedencies = $generator->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\asserter\generator'])
+				->boolean(isset($generatorDepedencies['locale']))->isTrue()
+				->object($generator->getLocale())->isInstanceOf('mageekguy\atoum\locale')
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\asserter\generator']['locale'] = $localeInjector = function() use (& $locale) { return $locale = new atoum\locale(); })
+			->and($generator = new asserter\generator($depedencies))
+			->then
+				->object($generatorDepedencies = $generator->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\asserter\generator'])
+				->object($generatorDepedencies['locale'])->isIdenticalTo($localeInjector)
 				->object($generator->getLocale())->isIdenticalTo($locale)
 		;
 	}
@@ -56,6 +67,26 @@ class generator extends atoum\test
 					->isInstanceOf('mageekguy\atoum\exceptions\logic\invalidArgument')
 					->hasMessage('Asserter \'' . $asserter . '\' does not exist')
 				->object($generator->variable(uniqid()))->isInstanceOf('mageekguy\atoum\asserters\variable')
+		;
+	}
+
+	public function testSetDepedencies()
+	{
+		$this
+			->if($generator = new asserter\generator())
+			->then
+				->object($generator->setDepedencies($depedencies = new atoum\depedencies()))->isIdenticalTo($generator)
+				->object($generatorDepedencies = $generator->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\asserter\generator'])
+				->boolean(isset($generatorDepedencies['locale']))->isTrue()
+			->if($depedencies = new atoum\depedencies())
+			->and($depedencies['mageekguy\atoum\asserter\generator']['locale'] = $localeInjector = function() {})
+			->then
+				->object($generator->setDepedencies($depedencies))->isIdenticalTo($generator)
+				->object($generatorDepedencies = $generator->getDepedencies())->isIdenticalTo($depedencies['mageekguy\atoum\asserter\generator'])
+				->object($generatorDepedencies['locale'])->isIdenticalTo($localeInjector)
+			->if($depedencies['mageekguy\atoum\asserter\generator']['locale'] = $otherLocaleInjector = function() {})
+			->then
+				->object($generatorDepedencies['locale'])->isIdenticalTo($otherLocaleInjector)
 		;
 	}
 
