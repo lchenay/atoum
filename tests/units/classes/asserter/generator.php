@@ -13,76 +13,83 @@ class generator extends atoum\test
 {
 	public function test__construct()
 	{
-		$generator = new asserter\generator($this);
+		$this
+			->if($generator = new asserter\generator())
+			->then
+				->object($generator->getLocale())->isEqualTo(new atoum\locale())
+			->if($generator = new asserter\generator($locale = new atoum\locale()))
+			->then
+				->object($generator->getLocale())->isIdenticalTo($locale)
+		;
+	}
 
-		$this->assert
-			->object($generator->getTest())->isIdenticalTo($this)
-			->object($generator->getLocale())->isIdenticalTo($this->getLocale())
+	public function test__get()
+	{
+		$this
+			->if($generator = new asserter\generator())
+			->then
+				->exception(function() use ($generator, & $asserter) { $generator->{$asserter = uniqid()}; })
+					->isInstanceOf('mageekguy\atoum\exceptions\logic\invalidArgument')
+					->hasMessage('Asserter \'' . $asserter . '\' does not exist')
+				->object($generator->variable)->isInstanceOf('mageekguy\atoum\asserters\variable')
+		;
+	}
+
+	public function test__set()
+	{
+		$this
+			->if($generator = new asserter\generator())
+			->then
+				->when(function() use ($generator, & $alias, & $asserter) { $generator->{$alias = uniqid()} = ($asserter = uniqid()); })
+					->array($generator->getAliases())->isEqualTo(array($alias => $asserter))
+				->when(function() use ($generator, & $otherAlias, & $otherAsserter) { $generator->{$otherAlias = uniqid()} = ($otherAsserter = uniqid()); })
+					->array($generator->getAliases())->isEqualTo(array($alias => $asserter, $otherAlias => $otherAsserter))
 		;
 	}
 
 	public function test__call()
 	{
-		$generator = new asserter\generator($this, $locale = new atoum\locale());
-
-		$this->assert
-			->exception(function() use ($generator, & $asserter) {
-					$generator->{$asserter = uniqid()}();
-				}
-			)
-			->isInstanceOf('mageekguy\atoum\exceptions\logic\invalidArgument')
-			->hasMessage('Asserter \'mageekguy\atoum\asserters\\' . $asserter . '\' does not exist')
-		;
-
-		$this->assert
-			->object($generator->variable(uniqid()))->isInstanceOf('mageekguy\atoum\asserters\variable')
+		$this
+			->if($generator = new asserter\generator())
+			->then
+				->exception(function() use ($generator, & $asserter) { $generator->{$asserter = uniqid()}(); })
+					->isInstanceOf('mageekguy\atoum\exceptions\logic\invalidArgument')
+					->hasMessage('Asserter \'' . $asserter . '\' does not exist')
+				->object($generator->variable(uniqid()))->isInstanceOf('mageekguy\atoum\asserters\variable')
 		;
 	}
 
-	public function testWhen()
+	public function testSetLocale()
 	{
-		$generator = new asserter\generator($this);
-
-		$value = null;
-
-		$this->assert
-			->variable($value)->isNull()
-			->object($generator->when(function() use (& $value) { $value = uniqid(); }))->isIdenticalTo($generator)
-			->variable($value)->isNotNull()
-		;
-	}
-
-	public function testSetTest()
-	{
-		$generator = new asserter\generator($this);
-
-		$this->assert
-			->object($generator->setTest($test = new self()))->isIdenticalTo($generator)
-			->object($generator->getTest())->isIdenticalTo($test)
-			->object($generator->getLocale())->isIdenticalTo($test->getLocale())
+		$this
+			->if($generator = new asserter\generator())
+			->then
+				->object($generator->setLocale($locale = new atoum\locale()))->isIdenticalTo($generator)
+				->object($generator->getLocale())->isIdenticalTo($locale)
 		;
 	}
 
 	public function testSetAlias()
 	{
-		$generator = new asserter\generator($this);
-
-		$this->assert
-			->object($generator->setAlias($alias = uniqid(), $asserter = uniqid()))->isIdenticalTo($generator)
-			->array($generator->getAliases())->isEqualTo(array($alias => $asserter))
+		$this
+			->if($generator = new asserter\generator())
+			->then
+				->object($generator->setAlias($alias = uniqid(), $asserter = uniqid()))->isIdenticalTo($generator)
+				->array($generator->getAliases())->isEqualTo(array($alias => $asserter))
+				->object($generator->setAlias($otherAlias = uniqid(), $otherAsserter = uniqid()))->isIdenticalTo($generator)
+				->array($generator->getAliases())->isEqualTo(array($alias => $asserter, $otherAlias => $otherAsserter))
 		;
 	}
 
 	public function testResetAliases()
 	{
-		$generator = new asserter\generator($this, $locale = new atoum\locale());
-
-		$generator->setAlias(uniqid(), uniqid());
-
-		$this->assert
-			->array($generator->getAliases())->isNotEmpty()
-			->object($generator->resetAliases())->isIdenticalTo($generator)
-			->array($generator->getAliases())->isEmpty()
+		$this
+			->if($generator = new asserter\generator())
+			->and($generator->setAlias(uniqid(), uniqid()))
+			->then
+				->array($generator->getAliases())->isNotEmpty()
+				->object($generator->resetAliases())->isIdenticalTo($generator)
+				->array($generator->getAliases())->isEmpty()
 		;
 	}
 }

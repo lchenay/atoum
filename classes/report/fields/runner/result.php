@@ -3,11 +3,13 @@
 namespace mageekguy\atoum\report\fields\runner;
 
 use
+	mageekguy\atoum\locale,
 	mageekguy\atoum\runner,
-	mageekguy\atoum\report
+	mageekguy\atoum\report,
+	mageekguy\atoum\observable
 ;
 
-abstract class result extends report\fields\runner
+abstract class result extends report\field
 {
 	protected $testNumber = null;
 	protected $testMethodNumber = null;
@@ -15,6 +17,12 @@ abstract class result extends report\fields\runner
 	protected $failNumber = null;
 	protected $errorNumber = null;
 	protected $exceptionNumber = null;
+	protected $uncompletedMethodNumber = null;
+
+	public function __construct(locale $locale = null)
+	{
+		parent::__construct(array(runner::runStop), $locale);
+	}
 
 	public function getTestNumber()
 	{
@@ -46,21 +54,31 @@ abstract class result extends report\fields\runner
 		return $this->exceptionNumber;
 	}
 
-	public function setWithRunner(runner $runner, $event = null)
+	public function getUncompletedMethodNumber()
 	{
-		if ($event === runner::runStop)
-		{
-			$score = $runner->getScore();
+		return $this->uncompletedMethodNumber;
+	}
 
-			$this->testNumber = $runner->getTestNumber();
-			$this->testMethodNumber = $runner->getTestMethodNumber();
+	public function handleEvent($event, observable $observable)
+	{
+		if (parent::handleEvent($event, $observable) === false)
+		{
+			return false;
+		}
+		else
+		{
+			$score = $observable->getScore();
+
+			$this->testNumber = $observable->getTestNumber();
+			$this->testMethodNumber = $observable->getTestMethodNumber();
 			$this->assertionNumber = $score->getAssertionNumber();
 			$this->failNumber = $score->getFailNumber();
 			$this->errorNumber = $score->getErrorNumber();
 			$this->exceptionNumber = $score->getExceptionNumber();
-		}
+			$this->uncompletedMethodNumber = $score->getUncompletedMethodNumber();
 
-		return $this;
+			return true;
+		}
 	}
 }
 

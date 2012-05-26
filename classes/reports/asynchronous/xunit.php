@@ -12,12 +12,11 @@ class xunit extends atoum\reports\asynchronous
 {
 	const defaultTitle = 'atoum testsuite';
 
-	protected $xunit = '';
-	protected $adapter = null;
+	protected $score = null;
 
-	public function __construct(atoum\adapter $adapter = null)
+	public function __construct(atoum\factory $factory = null)
 	{
-		parent::__construct(null, $adapter);
+		parent::__construct($factory);
 
 		if ($this->adapter->extension_loaded('libxml') === false)
 		{
@@ -25,31 +24,29 @@ class xunit extends atoum\reports\asynchronous
 		}
 	}
 
-	public function getRunnerFieldsAsString($event)
+	public function handleEvent($event, atoum\observable $observable)
 	{
-		return $this->xunit;
+		$this->score = ($event !== atoum\runner::runStop) ? null : $observable->getScore();
+
+		return parent::handleEvent($event, $observable);
 	}
 
-	protected function setRunnerFields(atoum\runner $runner, $event)
+	public function build($event)
 	{
-		parent::setRunnerFields($runner, $event);
-
-		$this->xunit = '';
+		$this->string = '';
 
 		if ($event === atoum\runner::runStop)
 		{
 			$this->title = $this->title ?: self::defaultTitle;
 
-			$score = $runner->getScore();
-
 			$document = new \DOMDocument('1.0', 'UTF-8');
 			$document->formatOutput = true;
 			$document->appendChild($root = $document->createElement('testsuites'));
 			$root->setAttribute('name', $this->title);
-			$durations = $score->getDurations();
-			$errors = $score->getErrors();
-			$excepts = $score->getExceptions();
-			$fails = $score->getFailAssertions();
+			$durations = $this->score->getDurations();
+			$errors = $this->score->getErrors();
+			$excepts = $this->score->getExceptions();
+			$fails = $this->score->getFailAssertions();
 
 			$filterClass = function ($element) use (& $clname) { return ($element['class'] == $clname); };
 
@@ -130,7 +127,7 @@ class xunit extends atoum\reports\asynchronous
 				}
 			}
 
-			$this->xunit = $document->saveXML();
+			$this->string = $document->saveXML();
 		}
 
 		return $this;

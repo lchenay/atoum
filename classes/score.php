@@ -4,20 +4,26 @@ namespace mageekguy\atoum;
 
 use
 	mageekguy\atoum,
+	mageekguy\atoum\test,
 	mageekguy\atoum\exceptions
 ;
 
 class score
 {
+	private $factory = null;
 	private $passAssertions = 0;
 	private $failAssertions = array();
 	private $exceptions = array();
+	private $runtimeExceptions = array();
 	private $errors = array();
 	private $outputs = array();
 	private $durations = array();
 	private $memoryUsages = array();
 	private $coverage = null;
+	private $uncompletedMethods = array();
 	private $case = null;
+	private $dataSetKey = null;
+	private $dataSetProvider = null;
 	private $phpPath = null;
 	private $phpVersion = null;
 	private $atoumPath = null;
@@ -26,9 +32,24 @@ class score
 
 	private static $failId = 0;
 
-	public function __construct(score\coverage $coverage = null)
+	public function __construct(factory $factory = null)
 	{
-		$this->coverage = $coverage ?: new score\coverage();
+		$this
+			->setFactory($factory ?: new factory())
+			->setCoverage($this->factory['mageekguy\atoum\score\coverage']($this->factory))
+		;
+	}
+
+	public function setFactory(factory $factory)
+	{
+		$this->factory = $factory;
+
+		return $this;
+	}
+
+	public function getFactory()
+	{
+		return $this->factory;
 	}
 
 	public function reset()
@@ -44,6 +65,13 @@ class score
 		$this->outputs = array();
 		$this->durations = array();
 		$this->memoryUsages = array();
+
+		return $this;
+	}
+
+	public function setCoverage(score\coverage $coverage)
+	{
+		$this->coverage = $coverage;
 
 		return $this;
 	}
@@ -108,6 +136,8 @@ class score
 		$this->failAssertions[] = array(
 			'id' => ++self::$failId,
 			'case' => $this->case,
+			'dataSetKey' => $this->dataSetKey,
+			'dataSetProvider' => $this->dataSetProvider,
 			'class' => $class,
 			'method' => $method,
 			'file' => $file,
@@ -123,6 +153,8 @@ class score
 	{
 		$this->exceptions[] = array(
 			'case' => $this->case,
+			'dataSetKey' => $this->dataSetKey,
+			'dataSetProvider' => $this->dataSetProvider,
 			'class' => $class,
 			'method' => $method,
 			'file' => $file,
@@ -133,10 +165,19 @@ class score
 		return $this;
 	}
 
+	public function addRuntimeException(test\exceptions\runtime $exception)
+	{
+		$this->runtimeExceptions[] = $exception;
+
+		return $this;
+	}
+
 	public function addError($file, $line, $class, $method, $type, $message, $errorFile = null, $errorLine = null)
 	{
 		$this->errors[] = array(
 			'case' => $this->case,
+			'dataSetKey' => $this->dataSetKey,
+			'dataSetProvider' => $this->dataSetProvider,
 			'class' => $class,
 			'method' => $method,
 			'file' => $file,
@@ -155,7 +196,6 @@ class score
 		if ($output != '')
 		{
 			$this->outputs[] = array(
-				'case' => $this->case,
 				'class' => $class,
 				'method' => $method,
 				'value' => $output
@@ -195,6 +235,18 @@ class score
 		return $this;
 	}
 
+	public function addUncompletedMethod($class, $method, $exitCode, $output)
+	{
+		$this->uncompletedMethods[] = array(
+			'class' => $class,
+			'method' => $method,
+			'exitCode' => $exitCode,
+			'output' => $output
+		);
+
+		return $this;
+	}
+
 	public function merge(score $score)
 	{
 		$this->passAssertions += $score->passAssertions;
@@ -205,6 +257,7 @@ class score
 		$this->durations = array_merge($this->durations, $score->durations);
 		$this->memoryUsages = array_merge($this->memoryUsages, $score->memoryUsages);
 		$this->coverage->merge($score->coverage);
+		$this->uncompletedMethods = array_merge($this->uncompletedMethods, $score->uncompletedMethods);
 
 		return $this;
 	}
@@ -270,17 +323,22 @@ class score
 
 	public function getFailAssertions()
 	{
-		return self::cleanAssertions($this->failAssertions);
+		return self::sort(self::cleanAssertions($this->failAssertions));
 	}
 
 	public function getErrors()
 	{
-		return $this->errors;
+		return self::sort($this->errors);
 	}
 
 	public function getExceptions()
 	{
-		return $this->exceptions;
+		return self::sort($this->exceptions);
+	}
+
+	public function getRuntimeExceptions()
+	{
+		return $this->runtimeExceptions;
 	}
 
 	public function getDurationNumber()
@@ -308,6 +366,11 @@ class score
 		return sizeof($this->exceptions);
 	}
 
+	public function getRuntimeExceptionNumber()
+	{
+		return sizeof($this->runtimeExceptions);
+	}
+
 	public function getMemoryUsageNumber()
 	{
 		return sizeof($this->memoryUsages);
@@ -323,9 +386,54 @@ class score
 		return sizeof($this->errors);
 	}
 
+	public function getUncompletedMethodNumber()
+	{
+		return sizeof($this->uncompletedMethods);
+	}
+
 	public function getCoverage()
 	{
 		return $this->coverage;
+	}
+
+	public function getUncompletedMethods()
+	{
+		return $this->uncompletedMethods;
+	}
+
+	public function getCase()
+	{
+		return $this->case;
+	}
+
+	public function getDataSetKey()
+	{
+		return $this->dataSetKey;
+	}
+
+	public function getDataSetProvider()
+	{
+		return $this->dataSetProvider;
+	}
+
+	public function getMethodsWithFail()
+	{
+		return self::getMethods($this->getFailAssertions());
+	}
+
+	public function getMethodsWithError()
+	{
+		return self::getMethods($this->getErrors());
+	}
+
+	public function getMethodsWithException()
+	{
+		return self::getMethods($this->getExceptions());
+	}
+
+	public function getMethodsNotCompleted()
+	{
+		return self::getMethods($this->getUncompletedMethods());
 	}
 
 	public function setCase($case)
@@ -335,9 +443,12 @@ class score
 		return $this;
 	}
 
-	public function getCase()
+	public function setDataSet($key, $dataProvider)
 	{
-		return $this->case;
+		$this->dataSetKey = $key;
+		$this->dataSetProvider = $dataProvider;
+
+		return $this;
 	}
 
 	public function unsetCase()
@@ -347,14 +458,22 @@ class score
 		return $this;
 	}
 
-	public function errorExists($message = null, $type = null)
+	public function unsetDataSet()
+	{
+		$this->dataSetKey = null;
+		$this->dataSetProvider = null;
+
+		return $this;
+	}
+
+	public function errorExists($message = null, $type = null, $messageIsPattern = false)
 	{
 		$messageIsNull = $message === null;
 		$typeIsNull = $type === null;
 
 		foreach ($this->errors as $key => $error)
 		{
-			$messageMatch = $messageIsNull === true ? true : $error['message'] == $message;
+			$messageMatch = $messageIsNull === true ? true : ($messageIsPattern == false ? $message == $error['message'] : preg_match($message, $error['message']) == 1);
 			$typeMatch = $typeIsNull === true ? true : $error['type'] == $type;
 
 			if ($messageMatch === true && $typeMatch === true)
@@ -385,9 +504,44 @@ class score
 		return (sizeof(array_filter($this->failAssertions, function($assertion) use ($id) { return ($assertion['id'] === $id); })) > 0);
 	}
 
+	private static function getMethods(array $array)
+	{
+		$methods = array();
+
+		foreach ($array as $value)
+		{
+			if (isset($methods[$value['class']]) === false || in_array($value['method'], $methods[$value['class']]) === false)
+			{
+				$methods[$value['class']][] = $value['method'];
+			}
+		}
+
+		return $methods;
+	}
+
 	private static function cleanAssertions(array $assertions)
 	{
 		return array_map(function ($assertion) { unset($assertion['id']); return $assertion; }, array_values($assertions));
+	}
+
+	private static function sort(array $array)
+	{
+		usort($array, function($a, $b) {
+				switch (true)
+				{
+					case $a['file'] === $b['file'] && $a['line'] === $b['line']:
+						return 0;
+
+					case $a['file'] === $b['file']:
+						return $a['line'] < $b['line'] ? -1 : 1;
+
+					default:
+						return strcmp($a['file'], $b['file']);
+				}
+			}
+		);
+
+		return $array;
 	}
 }
 

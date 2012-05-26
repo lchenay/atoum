@@ -9,9 +9,9 @@ use
 
 class parser implements \iteratorAggregate
 {
-	protected $script = null;
 	protected $values = array();
 	protected $handlers = array();
+	protected $priorities = array();
 
 	public function __construct(atoum\superglobals $superglobals = null)
 	{
@@ -23,18 +23,6 @@ class parser implements \iteratorAggregate
 		$this->superglobals = $superglobals;
 
 		return $this;
-	}
-
-	public function setScript(atoum\script $script)
-	{
-		$this->script = $script;
-
-		return $this;
-	}
-
-	public function getScript()
-	{
-		return $this->script;
 	}
 
 	public function getSuperglobals()
@@ -54,14 +42,92 @@ class parser implements \iteratorAggregate
 		return $this->handlers;
 	}
 
+	public function getPriorities()
+	{
+		return $this->priorities;
+	}
+
 	public function getIterator()
 	{
 		return new \arrayIterator($this->getValues());
 	}
 
-	public function parse(array $array = null)
+	public function parse(atoum\script $script, array $array = array())
 	{
-		if ($array === null)
+		$this->init($array);
+
+		$priorities = $this->priorities;
+
+		uksort($this->values, function($arg1, $arg2) use ($priorities) {
+				switch (true)
+				{
+					case isset($priorities[$arg1]) === false:
+					case isset($priorities[$arg2]) === false:
+						return - PHP_INT_MAX;
+
+					default:
+						return ($priorities[$arg1] > $priorities[$arg2] ? -1 : ($priorities[$arg1] == $priorities[$arg2] ? 0 : 1));
+				}
+			}
+		);
+
+		foreach ($this->values as $argument => $values)
+		{
+			$this->triggerHandlers($argument, $values, $script);
+		}
+
+		return $this;
+	}
+
+	public function getValues($argument = null)
+	{
+		return ($argument === null ? $this->values : (isset($this->values[$argument]) === false ? null : $this->values[$argument]));
+	}
+
+	public function addHandler(\closure $handler, array $arguments, $priority = 0)
+	{
+		$invoke = new \reflectionMethod($handler, '__invoke');
+
+		if ($invoke->getNumberOfParameters() < 3)
+		{
+			throw new exceptions\runtime('Handler must take three arguments');
+		}
+
+		foreach ($arguments as $argument)
+		{
+			if (self::isArgument($argument) === false)
+			{
+				throw new exceptions\runtime('Argument \'' . $argument . '\' is invalid');
+			}
+
+			$this->handlers[$argument][] = $handler;
+			$this->priorities[$argument] = (int) $priority;
+		}
+
+		return $this;
+	}
+
+	public function resetHandlers()
+	{
+		$this->handlers = array();
+		$this->priorities = array();
+
+		return $this;
+	}
+
+	public function argumentIsHandled($argument)
+	{
+		return (isset($this->values[$argument]) === true);
+	}
+
+	public function argumentsAreHandled(array $arguments)
+	{
+		return (sizeof(array_intersect(array_keys($this->values), $arguments)) > 0);
+	}
+
+	public function init(array $array = array())
+	{
+		if (sizeof($array) <= 0)
 		{
 			$array = array_slice($this->superglobals->_SERVER['argv'], 1);
 		}
@@ -95,8 +161,6 @@ class parser implements \iteratorAggregate
 				}
 				else
 				{
-					$this->triggerHandlers();
-
 					$argument = $value;
 
 					$this->values[$argument] = array();
@@ -104,64 +168,16 @@ class parser implements \iteratorAggregate
 
 				$arguments->next();
 			}
-
-			$this->triggerHandlers();
 		}
 
 		return $this;
 	}
 
-	public function getValues($argument = null)
+	public function triggerHandlers($argument, array $values, atoum\script $script)
 	{
-		return ($argument === null ? $this->values : (isset($this->values[$argument]) === false ? null : $this->values[$argument]));
-	}
-
-	public function addHandler(\closure $handler, array $arguments)
-	{
-		$invoke = new \reflectionMethod($handler, '__invoke');
-
-		if ($invoke->getNumberOfParameters() < 3)
-		{
-			throw new exceptions\runtime('Handler must take three arguments');
-		}
-
-		foreach ($arguments as $argument)
-		{
-			if (self::isArgument($argument) === false)
-			{
-				throw new exceptions\runtime('Argument \'' . $argument . '\' is invalid');
-			}
-
-			$this->handlers[$argument][] = $handler;
-		}
-
-		return $this;
-	}
-
-	public function argumentIsHandled($argument)
-	{
-		return (isset($this->values[$argument]) === true);
-	}
-
-	public function argumentsAreHandled(array $arguments)
-	{
-		return (sizeof(array_intersect(array_keys($this->values), $arguments)) > 0);
-	}
-
-	public static function isArgument($value)
-	{
-		return (preg_match('/^(\+|-{1,2})[a-z][-_a-z0-9]*/i', $value) === 1);
-	}
-
-	protected function triggerHandlers()
-	{
-		$lastArgument = array_slice($this->values, -1);
-
-		list($argument, $values) = each($lastArgument);
-
 		if (isset($this->handlers[$argument]) === true)
 		{
-			$this->invokeHandlersForArgument($argument, $values);
+			$this->invokeHandlers($script, $argument, $values);
 		}
 		else
 		{
@@ -194,21 +210,26 @@ class parser implements \iteratorAggregate
 			}
 			else
 			{
-				$this->invokeHandlersForArgument($closestArgument, $values);
+				$this->invokeHandlers($script, $closestArgument, $values);
 			}
 		}
 
 		return $this;
 	}
 
-	protected function invokeHandlersForArgument($argument, $values)
+	public function invokeHandlers(atoum\script $script, $argument, array $values)
 	{
 		foreach ($this->handlers[$argument] as $handler)
 		{
-			$handler->__invoke($this->script, $argument, $values, sizeof($this->values));
+			$handler->__invoke($script, $argument, $values, sizeof($this->values));
 		}
 
 		return $this;
+	}
+
+	public static function isArgument($value)
+	{
+		return (preg_match('/^(\+|-{1,2})[a-z][-_a-z0-9]*/i', $value) === 1);
 	}
 }
 

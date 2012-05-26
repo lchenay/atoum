@@ -1,6 +1,6 @@
 # *atoum*
 
-## A simple, modern and intuitive unit testing framework for PHP !
+## A simple, modern and intuitive unit testing framework for PHP!
 
 Just like SimpleTest or PHPUnit, *atoum* is a unit testing framework specific to the [PHP](http://www.php.net) language.
 However, it has been designed from the start with the following ideas in mind :
@@ -23,7 +23,7 @@ Finally, even though it is developed mainly on UNIX, it can also work on Windows
 ## Prerequisites to use *atoum*
 
 *atoum* absolutely requires *PHP 5.3* or later to work.
-Should you want to use *atoum* using its PHAR archive, you also need [PHP](http://www.php.net] to be able to access the `phar` module, which is normally available by default.
+Should you want to use *atoum* using its PHAR archive, you also need [PHP](http://www.php.net) to be able to access the `phar` module, which is normally available by default.
 On UNIX, in order to check whether you have this module or not, you just need to run the following command in your terminal :
 
 	# php -m | grep -i phar
@@ -34,15 +34,15 @@ On UNIX, in order to check whether you have this module or not, you just need to
 
 	# php -m | grep -i xml
 
-If `Xml` or equivalent gets displayed, then the module is properly installed.--
-Should you wish to monitor the coverage rate of your code by the unit tests, the [Xdebug](http://xdebug.org/) will be required.
+If `Xml` or equivalent gets displayed, then the module is properly installed.  
+Should you wish to monitor the coverage rate of your code by the unit tests, the [Xdebug](http://xdebug.org/) will be required.  
 On UNIX, in order to check whether you have this module or not, you just need to run the following command in your terminal :
 
 	# php -m | grep -i xdebug
 
 If `Xdebug` or equivalent gets displayed, then the module is properly installed.
 
-## A unit testing framework that can be made operational in 5 minutes !
+## A unit testing framework that can be made operational in 5 minutes!
 
 ### Step 1 : Install *atoum*
 
@@ -76,8 +76,7 @@ class helloWorld extends atoum\test
 	{
 		$helloWorld = new project\helloWorld();
 
-		$this->assert
-			->string($helloWorld->say())->isEqualTo('Hello World !')
+		$this->string($helloWorld->say())->isEqualTo('Hello World!')
 		;
 	}
 }
@@ -109,7 +108,7 @@ class helloWorld
 {
 	public function say()
 	{
-		return 'Hello World !';
+		return 'Hello World!';
 	}
 }
 
@@ -155,9 +154,9 @@ class helloWorld extends atoum\test
 	{
 		$helloWorld = new project\helloWorld();
 
-		$this->assert
-			->string($helloWorld->say())->isEqualTo('Hello !')
-			->string($helloWorld->say($name = 'Frédéric Hardy'))->isEqualTo('Hello ' . $name . ' !')
+		$this
+			->string($helloWorld->say())->isEqualTo('Hello!')
+			->string($helloWorld->say($name = 'Frédéric Hardy'))->isEqualTo('Hello ' . $name . '!')
 		;
 	}
 }
@@ -220,3 +219,12 @@ As all PHP extension, APC has some configuration options to enable it :
 * `apc.enable_cli`, whether to enable or disable APC for PHP CLI ;
 
 In order to use [APC](http://fr.php.net/manual/en/apc.configuration.php) with *atoum*, you have to set `apc.enabled` and `apc.enable_cli` to `1`, otherwise, it won't be enabled for the PHP CLI version, which is used by *atoum*.
+
+### Getting segfault when mocking objects
+When using *atoum* and mocking objects, you will sometime get segfaults coming from [PHP](http://www.php.net).  
+These segfaults are caused by [XDebug](http://xdebug.org/) in version less than 2.1.0 which has problem handling reflection in some cases.--
+To check the current version of [XDebug](http://xdebug.org/), you can run `php -v`.  
+To fix this issue, you have to update [XDebug](http://xdebug.org/) to the latest [stable version](http://xdebug.org/download.php).  
+If you can't update [XDebug](http://xdebug.org/) on your system, you can still disable the extension to avoid getting segfaults.  
+To be sure that [XDebug](http://xdebug.org/) has been succefully updated or disabled, you can run `php -v`.  
+When you are done updating or disabling [XDebug](http://xdebug.org/), run `php mageekguy.atoum.phar --test-it` to be sure that all the segfaults have gone and that *atoum* is working.

@@ -190,6 +190,7 @@ class html extends report\fields\runner\coverage\cli
 				foreach ($this->coverage->getMethods() as $className => $methods)
 				{
 					$classTemplate->className = $className;
+					$classTemplate->relativeRootUrl = str_repeat('../', substr_count($className, '\\'));
 
 					$classCoverageValue = $this->coverage->getValueForClass($className);
 

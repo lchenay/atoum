@@ -17,9 +17,9 @@ class autoloader
 
 	public function register($prepend = false)
 	{
-		if (spl_autoload_register(array($this, 'getClass'), true, $prepend) === false)
+		if (spl_autoload_register(array($this, 'requireClass'), true, $prepend) === false)
 		{
-			throw new \runtimeException('Unable to register');
+			throw new \runtimeException('Unable to register autoloader \'' . get_class($this) . '\'');
 		}
 
 		return $this;
@@ -56,15 +56,22 @@ class autoloader
 	{
 		foreach ($this->directories as $namespace => $directories)
 		{
-			if ($class !== $namespace && strpos($class, $namespace) === 0)
+			if ($class !== $namespace)
 			{
-				foreach ($directories as $directory)
-				{
-					$path = $directory . str_replace('\\', DIRECTORY_SEPARATOR, str_replace($namespace, '', $class)) . '.php';
+				$namespaceLength = strlen($namespace);
 
-					if (is_file($path) === true)
+				if (strncmp($class, $namespace, $namespaceLength) === 0)
+				{
+					$classFile = str_replace('\\', DIRECTORY_SEPARATOR, substr($class, $namespaceLength)) . '.php';
+
+					foreach ($directories as $directory)
 					{
-						return $path;
+						$path = $directory . $classFile;
+
+						if (is_file($path) === true)
+						{
+							return $path;
+						}
 					}
 				}
 			}
@@ -89,7 +96,7 @@ class autoloader
 		return static::$autoloader;
 	}
 
-	protected function getClass($class)
+	public function requireClass($class)
 	{
 		if (($path = $this->getPath($class)) !== null)
 		{

@@ -17,85 +17,123 @@ class builder extends atoum\test
 {
 	public function testClass()
 	{
-		$this->assert
-			->testedClass->isSubClassOf('mageekguy\atoum\reports\asynchronous')
-		;
+		$this->testedClass->isSubClassOf('mageekguy\atoum\reports\asynchronous');
 	}
 
 	public function test__construct()
 	{
-		$report = new reports\builder();
-
-		$this->assert
-			->array($report->getRunnerFields(atoum\runner::runStart))->isEqualTo(array(
-					new runner\atoum\cli(),
-					new runner\php\path\cli(
-					),
-					new runner\php\version\cli(
-						null,
-						null,
-						new prompt('   ')
+		$this
+			->if($report = new reports\builder())
+			->then
+				->object($report->getFactory())->isInstanceOf('mageekguy\atoum\factory')
+				->object($report->getLocale())->isInstanceOf('mageekguy\atoum\locale')
+				->object($report->getAdapter())->isInstanceOf('mageekguy\atoum\adapter')
+				->array($report->getFields())->isEqualTo(array(
+						new runner\atoum\cli(),
+						new runner\php\path\cli(),
+						new runner\php\version\cli(
+							null,
+							null,
+							new prompt('   ')
+						),
+						new runner\duration\cli(),
+						new runner\result\cli(),
+						new runner\failures\cli(
+							null,
+							null,
+							new prompt('   ')
+						),
+						new runner\outputs\cli(
+							null,
+							null,
+							new prompt('   ')
+						),
+						new runner\errors\cli(
+							null,
+							null,
+							new prompt('   '),
+							null,
+							new prompt('      ')
+						),
+						new runner\exceptions\cli(
+							null,
+							null,
+							new prompt('   '),
+							null,
+							new prompt('      ')
+						),
+						new runner\tests\uncompleted\cli(
+							null,
+							null,
+							new prompt('   '),
+							null,
+							new prompt('      ')
+						),
+						new runner\tests\duration\cli(),
+						new runner\tests\memory\cli(),
+						new runner\tests\coverage\cli(null, new prompt('   '), new prompt('      ')),
+						new test\run\cli(),
+						new test\duration\cli(new prompt('   ')),
+						new test\memory\cli(new prompt('   '))
 					)
 				)
-			)
-			->array($report->getRunnerFields(atoum\runner::runStop))->isEqualTo(array(
-					new runner\duration\cli(),
-					new runner\result\cli(),
-					new runner\failures\cli(
-						null,
-						null,
-						new prompt('   ')
-					),
-					new runner\outputs\cli(
-						null,
-						null,
-						new prompt('   ')
-					),
-					new runner\errors\cli(
-						null,
-						null,
-						new prompt('   '),
-						null,
-						new prompt('      ')
-					),
-					new runner\exceptions\cli(
-						null,
-						null,
-						new prompt('   '),
-						null,
-						new prompt('      ')
-					),
-					new runner\tests\duration\cli(),
-					new runner\tests\memory\cli(),
-					new runner\tests\coverage\cli(null, new prompt('   '), new prompt('      '))
+			->if($factory = new atoum\factory())
+			->and($factory['mageekguy\atoum\locale'] = $locale = new atoum\locale())
+			->and($factory['mageekguy\atoum\adapter'] = $adapter = new atoum\adapter())
+			->and($report = new reports\builder($factory))
+			->then
+				->object($report->getFactory())->isIdenticalTo($factory)
+				->object($report->getLocale())->isIdenticalTo($locale)
+				->object($report->getAdapter())->isIdenticalTo($adapter)
+				->array($report->getFields())->isEqualTo(array(
+						new runner\atoum\cli(),
+						new runner\php\path\cli(),
+						new runner\php\version\cli(
+							null,
+							null,
+							new prompt('   ')
+						),
+						new runner\duration\cli(),
+						new runner\result\cli(),
+						new runner\failures\cli(
+							null,
+							null,
+							new prompt('   ')
+						),
+						new runner\outputs\cli(
+							null,
+							null,
+							new prompt('   ')
+						),
+						new runner\errors\cli(
+							null,
+							null,
+							new prompt('   '),
+							null,
+							new prompt('      ')
+						),
+						new runner\exceptions\cli(
+							null,
+							null,
+							new prompt('   '),
+							null,
+							new prompt('      ')
+						),
+						new runner\tests\uncompleted\cli(
+							null,
+							null,
+							new prompt('   '),
+							null,
+							new prompt('      ')
+						),
+						new runner\tests\duration\cli(),
+						new runner\tests\memory\cli(),
+						new runner\tests\coverage\cli(null, new prompt('   '), new prompt('      ')),
+						new test\run\cli(),
+						new test\duration\cli(new prompt('   ')),
+						new test\memory\cli(new prompt('   '))
+					)
 				)
-			)
-			->array($report->getTestFields(atoum\test::runStart))->isEqualTo(array(
-					new test\run\cli()
-				)
-			)
-			->array($report->getTestFields(atoum\test::beforeSetUp))->isEmpty()
-			->array($report->getTestFields(atoum\test::afterSetUp))->isEmpty()
-			->array($report->getTestFields(atoum\test::beforeTestMethod))->isEmpty()
-			->array($report->getTestFields(atoum\test::success))->isEmpty()
-			->array($report->getTestFields(atoum\test::fail))->isEmpty()
-			->array($report->getTestFields(atoum\test::error))->isEmpty()
-			->array($report->getTestFields(atoum\test::exception))->isEmpty()
-			->array($report->getTestFields(atoum\test::afterTestMethod))->isEmpty()
-			->array($report->getTestFields(atoum\test::beforeTearDown))->isEmpty()
-			->array($report->getTestFields(atoum\test::afterTearDown))->isEmpty()
-			->array($report->getTestFields(atoum\test::runStop))->isEqualTo(array(
-					new test\duration\cli(new prompt('   ')),
-					new test\memory\cli(new prompt('   '))
-				)
-			)
-		;
-
-		$report = new reports\builder($locale = new atoum\locale(), $adapter = new atoum\adapter());
-
-		$this->assert
-			->object($report->getLocale())->isIdenticalTo($locale)
-			->object($report->getAdapter())->isIdenticalTo($adapter)
 		;
 	}
 }

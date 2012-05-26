@@ -11,6 +11,39 @@ use
 	mageekguy\atoum\tools\arguments
 ;
 
+/**
+ * @property    mageekguyatoum\asserter                       if
+ * @property    mageekguyatoum\asserter                       and
+ * @property    mageekguyatoum\asserter                       then
+ *
+ * @method      mageekguyatoum\asserter                       if()
+ * @method      mageekguyatoum\asserter                       and()
+ * @method      mageekguyatoum\asserter                       then()
+ *
+ * @method      mageekguyatoum\asserters\adapter              adapter()
+ * @method      mageekguyatoum\asserters\afterDestructionOf   afterDestructionOf()
+ * @method      mageekguyatoum\asserters\phpArray             array()
+ * @method      mageekguyatoum\asserters\boolean              boolean()
+ * @method      mageekguyatoum\asserters\castToString         castToString()
+ * @method      mageekguyatoum\asserters\phpClass             class()
+ * @method      mageekguyatoum\asserters\dateTime             dateTime()
+ * @method      mageekguyatoum\asserters\error                error()
+ * @method      mageekguyatoum\asserters\exception            exception()
+ * @method      mageekguyatoum\asserters\float                float()
+ * @method      mageekguyatoum\asserters\hash                 hash()
+ * @method      mageekguyatoum\asserters\integer              integer()
+ * @method      mageekguyatoum\asserters\mock                 mock()
+ * @method      mageekguyatoum\asserters\mysqlDateTime        mysqlDateTime()
+ * @method      mageekguyatoum\asserters\object               object()
+ * @method      mageekguyatoum\asserters\output               output()
+ * @method      mageekguyatoum\asserters\phpArray             phpArray()
+ * @method      mageekguyatoum\asserters\phpClass             phpClass()
+ * @method      mageekguyatoum\asserters\sizeOf               sizeOf()
+ * @method      mageekguyatoum\asserters\stream               stream()
+ * @method      mageekguyatoum\asserters\string               string()
+ * @method      mageekguyatoum\asserters\testedClass          testedClass()
+ * @method      mageekguyatoum\asserters\variable             variable()
+ */
 class mock extends atoum\asserter
 {
 	protected $mock = null;
@@ -185,6 +218,13 @@ class mock extends atoum\asserter
 		return $this;
 	}
 
+	public function withIdenticalArguments()
+	{
+		$this->calledMethodNameIsSet()->call->setArguments(func_get_args())->identical();
+
+		return $this;
+	}
+
 	public function withAnyArguments()
 	{
 		$this->calledMethodNameIsSet()->call->unsetArguments();
@@ -194,35 +234,12 @@ class mock extends atoum\asserter
 
 	public function once($failMessage = null)
 	{
-		$this->assertOnBeforeAndAfterCalls($calls = $this->calledMethodNameIsSet()->mock->getMockController()->getCalls($this->call->getFunction(), $this->call->getArguments()));
-
-		if (($callsNumber = sizeof($calls)) === 1)
-		{
-			$this->pass();
-		}
-		else
-		{
-			$this->fail(
-				$failMessage !== null
-				? $failMessage
-				: sprintf(
-						$this->getLocale()->__(
-							'method %s is called %d time instead of 1',
-							'method %s is called %d times instead of 1',
-							$callsNumber
-						),
-						$this->call,
-						$callsNumber
-					) . $this->getCallsAsString()
-			);
-		}
-
-		return $this;
+        return $this->exactly(1, $failMessage);
 	}
 
 	public function atLeastOnce($failMessage = null)
 	{
-		$this->assertOnBeforeAndAfterCalls($calls = $this->calledMethodNameIsSet()->mock->getMockController()->getCalls($this->call->getFunction(), $this->call->getArguments()));
+		$calls = $this->assertOnBeforeAndAfterCalls();
 
 		if (($callsNumber = sizeof($calls)) >= 1)
 		{
@@ -238,7 +255,7 @@ class mock extends atoum\asserter
 
 	public function exactly($number, $failMessage = null)
 	{
-		$this->assertOnBeforeAndAfterCalls($calls = $this->calledMethodNameIsSet()->mock->getMockController()->getCalls($this->call->getFunction(), $this->call->getArguments()));
+		$calls = $this->assertOnBeforeAndAfterCalls();
 
 		if (($callsNumber = sizeof($calls)) == $number)
 		{
@@ -264,7 +281,7 @@ class mock extends atoum\asserter
 
 	public function never($failMessage = null)
 	{
-		return $this->exactly(0);
+		return $this->exactly(0, $failMessage);
 	}
 
 	protected function mockIsSet()
@@ -287,8 +304,10 @@ class mock extends atoum\asserter
 		return $this;
 	}
 
-	protected function assertOnBeforeAndAfterCalls($calls)
+	protected function assertOnBeforeAndAfterCalls()
 	{
+		$calls = $this->calledMethodNameIsSet()->mock->getMockController()->getCalls($this->call->getFunction(), $this->call->getArguments(), $this->call->isIdentical());
+
 		if (sizeof($calls) > 0)
 		{
 			foreach ($this->beforeMethodCalls as $beforeMethodCall)
@@ -360,7 +379,12 @@ class mock extends atoum\asserter
 			}
 		}
 
-		return $this;
+		$this->beforeMethodCalls = array();
+		$this->afterMethodCalls = array();
+		$this->beforeFunctionCalls = array();
+		$this->afterFunctionCalls = array();
+
+		return $calls;
 	}
 
 	protected function getCallsAsString()

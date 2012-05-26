@@ -8,10 +8,41 @@ use
 	mageekguy\atoum\tools\diffs
 ;
 
+/**
+ * @property    mageekguyatoum\asserter                       if
+ * @property    mageekguyatoum\asserter                       and
+ * @property    mageekguyatoum\asserter                       then
+ *
+ * @method      mageekguyatoum\asserter                       if()
+ * @method      mageekguyatoum\asserter                       and()
+ * @method      mageekguyatoum\asserter                       then()
+ *
+ * @method      mageekguyatoum\asserters\adapter              adapter()
+ * @method      mageekguyatoum\asserters\afterDestructionOf   afterDestructionOf()
+ * @method      mageekguyatoum\asserters\phpArray             array()
+ * @method      mageekguyatoum\asserters\boolean              boolean()
+ * @method      mageekguyatoum\asserters\castToString         castToString()
+ * @method      mageekguyatoum\asserters\phpClass             class()
+ * @method      mageekguyatoum\asserters\dateTime             dateTime()
+ * @method      mageekguyatoum\asserters\error                error()
+ * @method      mageekguyatoum\asserters\exception            exception()
+ * @method      mageekguyatoum\asserters\float                float()
+ * @method      mageekguyatoum\asserters\hash                 hash()
+ * @method      mageekguyatoum\asserters\integer              integer()
+ * @method      mageekguyatoum\asserters\mock                 mock()
+ * @method      mageekguyatoum\asserters\mysqlDateTime        mysqlDateTime()
+ * @method      mageekguyatoum\asserters\object               object()
+ * @method      mageekguyatoum\asserters\output               output()
+ * @method      mageekguyatoum\asserters\phpArray             phpArray()
+ * @method      mageekguyatoum\asserters\phpClass             phpClass()
+ * @method      mageekguyatoum\asserters\sizeOf               sizeOf()
+ * @method      mageekguyatoum\asserters\stream               stream()
+ * @method      mageekguyatoum\asserters\string               string()
+ * @method      mageekguyatoum\asserters\testedClass          testedClass()
+ * @method      mageekguyatoum\asserters\variable             variable()
+ */
 class phpArray extends asserters\variable
 {
-	protected $key = null;
-
 	public function setWith($value, $label = null)
 	{
 		parent::setWith($value, $label);
@@ -23,27 +54,6 @@ class phpArray extends asserters\variable
 		else
 		{
 			$this->pass();
-		}
-
-		return $this;
-	}
-
-	public function getKey()
-	{
-		return $this->key;
-	}
-
-	public function atKey($key, $failMessage = null)
-	{
-		$this->valueIsSet()->key = $key;
-
-		if (isset($this->value[$this->key]) === true)
-		{
-			$this->pass();
-		}
-		else
-		{
-			$this->fail($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s has no key %s'), $this, $this->getTypeOf($this->key)));
 		}
 
 		return $this;
@@ -95,51 +105,183 @@ class phpArray extends asserters\variable
 		return $this;
 	}
 
+	public function strictlyContains($value, $failMessage = null)
+	{
+		return $this->containsValue($value, $failMessage, true);
+	}
+
 	public function contains($value, $failMessage = null)
 	{
-		if ($this->valueIsSet()->key === null)
-		{
-			if (in_array($value, $this->value) === true)
-			{
-				$this->pass();
-			}
-			else
-			{
-				$this->fail($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s does not contain %s'), $this, $this->getTypeOf($value)));
-			}
-		}
-		else if ($this->value[$this->key] == $value)
+		return $this->containsValue($value, $failMessage, false);
+	}
+
+	public function strictlyNotContains($value, $failMessage = null)
+	{
+		return $this->notContainsValue($value, $failMessage, true);
+	}
+
+	public function notContains($value, $failMessage = null)
+	{
+		return $this->notContainsValue($value, $failMessage, false);
+	}
+
+	public function hasKeys(array $keys, $failMessage = null)
+	{
+		if (sizeof($undefinedKeys = array_diff($keys, array_keys($this->value))) <= 0)
 		{
 			$this->pass();
 		}
 		else
 		{
-			$this->fail($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s does not contain %s at key %s'), $this, $this->getTypeOf($value), $this->getTypeOf($this->key)));
+			$this->fail(($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s should have keys %s'), $this, $this->getTypeOf($undefinedKeys))));
 		}
 
 		return $this;
 	}
 
-	public function notContains($value, $failMessage = null)
+	public function notHasKeys(array $keys, $failMessage = null)
 	{
-		if ($this->valueIsSet()->key === null)
-		{
-			if (in_array($value, $this->value) === false)
-			{
-				$this->pass();
-			}
-			else
-			{
-				$this->fail($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s contains %s'), $this, $this->getTypeOf($value)));
-			}
-		}
-		else if ($this->value[$this->key] != $value)
+		if (sizeof($definedKeys = array_intersect(array_keys($this->value), $keys)) <= 0)
 		{
 			$this->pass();
 		}
 		else
 		{
-			$this->fail($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s contains %s at key %s'), $this, $this->getTypeOf($value), $this->getTypeOf($this->key)));
+			$this->fail(($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s should not have keys %s'), $this, $this->getTypeOf($definedKeys))));
+		}
+
+		return $this;
+	}
+
+	public function hasKey($key, $failMessage = null)
+	{
+		if (array_key_exists($key, $this->value))
+		{
+			$this->pass();
+		}
+		else
+		{
+			$this->fail(($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s has no key %s'), $this, $this->getTypeOf($key))));
+		}
+
+		return $this;
+	}
+
+	public function notHasKey($key, $failMessage = null)
+	{
+		if (array_key_exists($key, $this->value) === false)
+		{
+			$this->pass();
+		}
+		else
+		{
+			$this->fail(($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s has a key %s'), $this, $this->getTypeOf($key))));
+		}
+
+		return $this;
+	}
+
+	public function containsValues(array $values, $failMessage = null)
+	{
+		return $this->intersect($values, $failMessage, false);
+	}
+
+	public function strictlyContainsValues(array $values, $failMessage = null)
+	{
+		return $this->intersect($values, $failMessage, true);
+	}
+
+	public function notContainsValues(array $values, $failMessage = null)
+	{
+		return $this->notIntersect($values, $failMessage, false);
+	}
+
+	public function strictlyNotContainsValues(array $values, $failMessage = null)
+	{
+		return $this->notIntersect($values, $failMessage, true);
+	}
+
+	protected function containsValue($value, $failMessage, $strict)
+	{
+		if (in_array($value, $this->valueIsSet()->value, $strict) === true)
+		{
+			$this->pass();
+		}
+		else if ($strict === false)
+		{
+			$this->fail($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s does not contain %s'), $this, $this->getTypeOf($value)));
+		}
+		else
+		{
+			$this->fail($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s does not strictly contain %s'), $this, $this->getTypeOf($value)));
+		}
+
+		return $this;
+	}
+
+	protected function notContainsValue($value, $failMessage, $strict)
+	{
+		if (in_array($value, $this->valueIsSet()->value, $strict) === false)
+		{
+			$this->pass();
+		}
+		else if ($strict === false)
+		{
+			$this->fail($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s contains %s'), $this, $this->getTypeOf($value)));
+		}
+		else
+		{
+			$this->fail($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s contains strictly %s'), $this, $this->getTypeOf($value)));
+		}
+
+		return $this;
+	}
+
+	protected function intersect(array $values, $failMessage, $strict)
+	{
+		$unknownValues = array();
+
+		foreach ($values as $value) if (in_array($value, $this->value, $strict) === false)
+		{
+			$unknownValues[] = $value;
+		}
+
+		if (sizeof($unknownValues) <= 0)
+		{
+			$this->pass();
+		}
+		else if ($strict === false)
+		{
+			$this->fail(($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s does not contain values %s'), $this, $this->getTypeOf($unknownValues))));
+		}
+		else
+		{
+			$this->fail(($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s does not contain strictly values %s'), $this, $this->getTypeOf($unknownValues))));
+		}
+
+		return $this;
+	}
+
+	protected function notIntersect(array $values, $failMessage, $strict)
+	{
+		$knownValues = array();
+
+		foreach ($values as $value) if (in_array($value, $this->value, $strict) === true)
+		{
+			$knownValues[] = $value;
+		}
+
+		if (sizeof($knownValues) <= 0)
+		{
+			$this->pass();
+		}
+		else if ($strict === false)
+		{
+			$this->fail(($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s should not contain values %s'), $this, $this->getTypeOf($knownValues))));
+		}
+		else
+		{
+			$this->fail(($failMessage !== null ? $failMessage : sprintf($this->getLocale()->_('%s should not contain strictly values %s'), $this, $this->getTypeOf($knownValues))));
 		}
 
 		return $this;

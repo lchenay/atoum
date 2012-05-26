@@ -8,22 +8,45 @@ use
 ;
 
 /**
- * @method  mageekguy\atoum\asserters\boolean       boolean()
- * @method  mageekguy\atoum\asserters\error         error()
- * @method  mageekguy\atoum\asserters\exception     exception()
- * @method  mageekguy\atoum\asserters\float         float()
- * @method  mageekguy\atoum\asserters\hash          hash()
- * @method  mageekguy\atoum\asserters\integer       integer()
- * @method  mageekguy\atoum\asserters\object        object()
- * @method  mageekguy\atoum\asserters\string        string()
- * @method  mageekguy\atoum\asserters\variable      variable()
+ * @property    mageekguy\atoum\asserter                       if
+ * @property    mageekguy\atoum\asserter                       and
+ * @property    mageekguy\atoum\asserter                       then
+ *
+ * @method      mageekguy\atoum\asserter                       if()
+ * @method      mageekguy\atoum\asserter                       and()
+ * @method      mageekguy\atoum\asserter                       then()
+ *
+ * @method      mageekguy\atoum\asserters\adapter              adapter()
+ * @method      mageekguy\atoum\asserters\afterDestructionOf   afterDestructionOf()
+ * @method      mageekguy\atoum\asserters\phpArray             array()
+ * @method      mageekguy\atoum\asserters\boolean              boolean()
+ * @method      mageekguy\atoum\asserters\castToString         castToString()
+ * @method      mageekguy\atoum\asserters\phpClass             class()
+ * @method      mageekguy\atoum\asserters\dateTime             dateTime()
+ * @method      mageekguy\atoum\asserters\error                error()
+ * @method      mageekguy\atoum\asserters\exception            exception()
+ * @method      mageekguy\atoum\asserters\float                float()
+ * @method      mageekguy\atoum\asserters\hash                 hash()
+ * @method      mageekguy\atoum\asserters\integer              integer()
+ * @method      mageekguy\atoum\asserters\mock                 mock()
+ * @method      mageekguy\atoum\asserters\mysqlDateTime        mysqlDateTime()
+ * @method      mageekguy\atoum\asserters\object               object()
+ * @method      mageekguy\atoum\asserters\output               output()
+ * @method      mageekguy\atoum\asserters\phpArray             phpArray()
+ * @method      mageekguy\atoum\asserters\phpClass             phpClass()
+ * @method      mageekguy\atoum\asserters\sizeOf               sizeOf()
+ * @method      mageekguy\atoum\asserters\stream               stream()
+ * @method      mageekguy\atoum\asserters\string               string()
+ * @method      mageekguy\atoum\asserters\testedClass          testedClass()
+ * @method      mageekguy\atoum\asserters\variable             variable()
  */
 class generator
 {
     /**
-     * @var mageekguy\atoum\test
+     *
+     * @var mageekguy\atoum\locale
      */
-	protected $test = null;
+	protected $locale = null;
 
     /**
      * @var array
@@ -34,33 +57,11 @@ class generator
     /**
      * Constructor
      *
-     * @param mageekguy\atoum\test $test
+     * @param mageekguy\atoum\locale $locale
      */
-	public function __construct(atoum\test $test)
+	public function __construct(atoum\locale $locale = null)
 	{
-		$this->setTest($test);
-	}
-
-
-    /**
-     * Magic getter
-     *
-     * @param string $asserterName
-     *
-     * @return mageekguy\atoum\asserter
-     *
-     * @throws mageekguy\atoum\exceptions\logic\invalidArgument
-     */
-	public function __get($asserterName)
-	{
-		$class = $this->getAsserterClass($asserterName);
-
-		if (class_exists($class, true) === false)
-		{
-			throw new exceptions\logic\invalidArgument('Asserter \'' . $class . '\' does not exist');
-		}
-
-		return new $class($this);
+		$this->setLocale($locale ?: new atoum\locale());
 	}
 
 
@@ -77,39 +78,42 @@ class generator
 
 
     /**
-     * @param string $asserter
+     * Magic getter
+     *
+     * @param string $asserterName
+     *
+     * @return mageekguy\atoum\asserter
+     *
+     * @throws mageekguy\atoum\exceptions\logic\invalidArgument
+     */
+	public function __get($property)
+	{
+		return $this->getAsserterInstance($property);
+	}
+
+
+    /**
+     * @param string $method
      * @param array  $arguments
      *
      * @return mageekguy\atoum\asserter
      */
-	public function __call($asserter, $arguments)
+	public function __call($method, $arguments)
 	{
-		$asserter = $this->{$asserter};
-
-		if (sizeof($arguments) > 0)
-		{
-			call_user_func_array(array($asserter, 'setWith'), $arguments);
-		}
-
-		return $asserter;
+		return $this->getAsserterInstance($method, $arguments);
 	}
 
 
     /**
-     * @return mageekguy\atoum\test
+     * @param mageekguy\atoum\locale $locale
+     *
+     * @return mageekguy\atoum\locale
      */
-	public function getTest()
+	public function setLocale(atoum\locale $locale)
 	{
-		return $this->test;
-	}
+		$this->locale = $locale;
 
-
-    /**
-     * @return mageekguy\atoum\score
-     */
-	public function getScore()
-	{
-		return $this->test->getScore();
+		return $this;
 	}
 
 
@@ -118,41 +122,7 @@ class generator
      */
 	public function getLocale()
 	{
-		return $this->test->getLocale();
-	}
-
-
-    /**
-     * @param string $asserter
-     *
-     * @return string
-     */
-	public function getAsserterClass($asserter)
-	{
-		if (isset($this->aliases[$asserter]) === true)
-		{
-			$asserter = $this->aliases[$asserter];
-		}
-
-		if (substr($asserter, 0, 1) != '\\')
-		{
-			$asserter = __NAMESPACE__ . 's\\' . $asserter;
-		}
-
-		return $asserter;
-	}
-
-
-    /**
-     * @param mageekguy\atoum\test $test
-     *
-     * @return mageekguy\atoum\generator
-     */
-	public function setTest(atoum\test $test)
-	{
-		$this->test = $test;
-
-		return $this;
+		return $this->locale;
 	}
 
 
@@ -162,7 +132,7 @@ class generator
      *
      * @return mageekguy\atoum\generator
      */
-	public function setAlias($alias, $asserterClass)
+    public function setAlias($alias, $asserterClass)
 	{
 		$this->aliases[$alias] = $asserterClass;
 
@@ -190,16 +160,53 @@ class generator
 	}
 
 
-    /**
-     * @param \closure $closure
-     *
-     * @return mageekguy\atoum\generator
-     */
-	public function when(\closure $closure)
+	public function asserterPass(atoum\asserter $asserter)
 	{
-		$closure();
-
 		return $this;
+	}
+
+
+    public function asserterFail(atoum\asserter $asserter, $reason)
+	{
+		throw new exception($reason);
+	}
+
+
+    /**
+     * @param string $asserter
+     *
+     * @return string
+     */
+	public function getAsserterClass($asserter)
+	{
+		$class = (isset($this->aliases[$asserter]) === false ? $asserter : $this->aliases[$asserter]);
+
+		if (substr($class, 0, 1) != '\\')
+		{
+			$class = __NAMESPACE__ . 's\\' . $class;
+		}
+
+		if (class_exists($class, true) === false)
+		{
+			$class = null;
+		}
+
+		return $class;
+	}
+
+
+	public function getAsserterInstance($asserter, array $arguments = array())
+	{
+		if (($asserterClass = $this->getAsserterClass($asserter)) === null)
+		{
+			throw new exceptions\logic\invalidArgument('Asserter \'' . $asserter . '\' does not exist');
+		}
+		else
+		{
+			$asserterInstance = new $asserterClass($this);
+
+			return $asserterInstance->setWithArguments($arguments);
+		}
 	}
 }
 

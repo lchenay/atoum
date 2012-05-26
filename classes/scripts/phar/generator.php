@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../../constants.php';
 
 use
 	mageekguy\atoum,
+	mageekguy\atoum\iterators,
 	mageekguy\atoum\exceptions
 ;
 
@@ -17,19 +18,6 @@ class generator extends atoum\script
 	protected $originDirectory = null;
 	protected $destinationDirectory = null;
 	protected $stubFile = null;
-
-	private $pharInjector = null;
-	private $srcIteratorInjector = null;
-	private $configurationsIteratorInjector = null;
-
-	public function __construct($name, atoum\locale $locale = null, atoum\adapter $adapter = null)
-	{
-		parent::__construct($name, $locale, $adapter);
-
-		$this->pharInjector = function ($name) { return new \phar($name); };
-		$this->srcIteratorInjector = function ($directory) { return new \recursiveDirectoryIterator($directory); };
-		$this->configurationsIteratorInjector = function ($directory) { return new \recursiveDirectoryIterator($directory); };
-	}
 
 	public function setOriginDirectory($directory)
 	{
@@ -74,10 +62,6 @@ class generator extends atoum\script
 		{
 			throw new exceptions\runtime('Destination directory must be different from origin directory');
 		}
-		else if (strpos($destinationDirectory, $this->originDirectory) === 0)
-		{
-			throw new exceptions\runtime('Origin directory must not include destination directory');
-		}
 
 		$this->destinationDirectory = $destinationDirectory;
 
@@ -111,63 +95,6 @@ class generator extends atoum\script
 	public function getStubFile()
 	{
 		return $this->stubFile;
-	}
-
-	public function getPhar($name)
-	{
-		return $this->pharInjector->__invoke($name);
-	}
-
-	public function setPharInjector(\closure $pharInjector)
-	{
-		$closure = new \reflectionMethod($pharInjector, '__invoke');
-
-		if ($closure->getNumberOfParameters() != 1)
-		{
-			throw new exceptions\runtime('Phar injector must take one argument');
-		}
-
-		$this->pharInjector = $pharInjector;
-
-		return $this;
-	}
-
-	public function getSrcIterator($directory)
-	{
-		return $this->srcIteratorInjector->__invoke($directory);
-	}
-
-	public function setSrcIteratorInjector(\closure $srcIteratorInjector)
-	{
-		$closure = new \reflectionMethod($srcIteratorInjector, '__invoke');
-
-		if ($closure->getNumberOfParameters() != 1)
-		{
-			throw new exceptions\runtime('Source iterator injector must take one argument');
-		}
-
-		$this->srcIteratorInjector = $srcIteratorInjector;
-
-		return $this;
-	}
-
-	public function getConfigurationsIterator($directory)
-	{
-		return $this->configurationsIteratorInjector->__invoke($directory);
-	}
-
-	public function setConfigurationsIteratorInjector(\closure $configurationsIteratorInjector)
-	{
-		$closure = new \reflectionMethod($configurationsIteratorInjector, '__invoke');
-
-		if ($closure->getNumberOfParameters() != 1)
-		{
-			throw new exceptions\runtime('Configurations iterator injector must take one argument');
-		}
-
-		$this->configurationsIteratorInjector = $configurationsIteratorInjector;
-
-		return $this;
 	}
 
 	public function run(array $arguments = array())
@@ -227,20 +154,6 @@ class generator extends atoum\script
 
 		@$this->adapter->unlink($pharFile);
 
-		$phar = $this->getPhar($pharFile);
-
-		if ($phar instanceof \phar === false)
-		{
-			throw new exceptions\logic('Phar injector must return a \phar instance');
-		}
-
-		$srcIterator = $this->getSrcIterator($this->originDirectory);
-
-		if ($srcIterator instanceof \recursiveDirectoryIterator === false)
-		{
-			throw new exceptions\logic('Source iterator injector must return a \recursiveDirectoryIterator instance');
-		}
-
 		$description = @$this->adapter->file_get_contents($this->originDirectory . DIRECTORY_SEPARATOR . 'ABOUT');
 
 		if ($description === false)
@@ -262,42 +175,23 @@ class generator extends atoum\script
 			throw new exceptions\runtime(sprintf($this->locale->_('Unable to read stub file \'%s\''), $this->stubFile));
 		}
 
+		$phar = $this->factory->build('phar', array($pharFile));
+
+		$phar['versions'] = serialize(array('1' => atoum\version, 'current' => '1'));
+
 		$phar->setStub($stub);
+		$phar->setMetadata(
+			array(
+				'version' => atoum\version,
+				'author' => atoum\author,
+				'support' => atoum\mail,
+				'repository' => atoum\repository,
+				'description' => $description,
+				'licence' => $licence
+			)
+		);
 
-		$phar->setMetadata(array(
-					'version' => atoum\version,
-					'author' => atoum\author,
-					'support' => atoum\mail,
-					'repository' => atoum\repository,
-					'description' => $description,
-					'licence' => $licence
-					)
-				);
-
-		$phar->buildFromIterator(new \recursiveIteratorIterator(new atoum\src\iterator\filter($srcIterator)), $this->originDirectory);
-
-		$configurationsIterator = $this->getConfigurationsIterator($phar['resources/configurations']);
-
-		if ($configurationsIterator instanceof \recursiveDirectoryIterator === false)
-		{
-			throw new exceptions\logic('Configurations iterator injector must return a \recursiveDirectoryIterator instance');
-		}
-
-		$configurationsIterator->setFlags(\filesystemIterator::CURRENT_AS_SELF);
-
-		foreach (new \recursiveIteratorIterator($configurationsIterator) as $configurations)
-		{
-			if ($configurations->current()->isFile() === true)
-			{
-				$path = $configurations->getSubpathname();
-
-				if (substr($path, -4) === '.php')
-				{
-					unset($phar['resources/configurations/' . $path]);
-				}
-			}
-		}
-
+		$phar->buildFromIterator(new iterators\recursives\atoum\source($this->originDirectory, '1'));
 		$phar->setSignatureAlgorithm(\phar::SHA1);
 
 		return $this;
@@ -321,35 +215,34 @@ class generator extends atoum\script
 
 	protected function setArgumentHandlers()
 	{
-		$this->addArgumentHandler(
-			function($script, $argument, $values) {
-				if (sizeof($values) !== 0)
-				{
-					throw new exceptions\logic\invalidArgument(sprintf($script->getLocale()->_('Bad usage of %s, do php %s --help for more informations'), $argument, $script->getName()));
-				}
+		return $this
+			->addArgumentHandler(
+				function($script, $argument, $values) {
+					if (sizeof($values) !== 0)
+					{
+						throw new exceptions\logic\invalidArgument(sprintf($script->getLocale()->_('Bad usage of %s, do php %s --help for more informations'), $argument, $script->getName()));
+					}
 
-				$script->help();
-			},
-			array('-h', '--help'),
-			null,
-			'Display this help'
-		);
+					$script->help();
+				},
+				array('-h', '--help'),
+				null,
+				'Display this help'
+			)
+			->addArgumentHandler(
+				function($script, $argument, $values) {
+					if (sizeof($values) !== 1)
+					{
+						throw new exceptions\logic\invalidArgument(sprintf($script->getLocale()->_('Bad usage of %s, do php %s --help for more informations'), $argument, $script->getName()));
+					}
 
-		$this->addArgumentHandler(
-			function($script, $argument, $values) {
-				if (sizeof($values) !== 1)
-				{
-					throw new exceptions\logic\invalidArgument(sprintf($script->getLocale()->_('Bad usage of %s, do php %s --help for more informations'), $argument, $script->getName()));
-				}
-
-				$script->setDestinationDirectory($values[0]);
-			},
-			array('-d', '--directory'),
-			'<directory>',
-			$this->locale->_('Destination directory <dir>')
-		);
-
-		return $this;
+					$script->setDestinationDirectory($values[0]);
+				},
+				array('-d', '--directory'),
+				'<directory>',
+				$this->locale->_('Destination directory <dir>')
+			)
+		;
 	}
 }
 

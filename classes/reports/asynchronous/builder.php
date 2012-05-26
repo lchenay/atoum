@@ -13,93 +13,80 @@ use
 
 class builder extends atoum\reports\asynchronous
 {
-	public function __construct(atoum\locale $locale = null, atoum\adapter $adapter = null)
+	public function __construct(atoum\factory $factory = null)
 	{
-		parent::__construct($locale, $adapter);
+		parent::__construct($factory);
 
 		$this
-			->addRunnerField(
-				new runner\atoum\cli(
-				),
-				array(atoum\runner::runStart)
-			)
-			->addRunnerField(
-				new runner\php\path\cli(
-				),
-				array(atoum\runner::runStart)
-			)
-			->addRunnerField(
+			->addField(new runner\atoum\cli())
+			->addField(new runner\php\path\cli())
+			->addField(
 				new runner\php\version\cli(
 					null,
 					null,
 					new prompt('   ')
-				),
-				array(atoum\runner::runStart)
-			)
-			->addRunnerField(
-					new runner\duration\cli(
-					),
-					array(atoum\runner::runStop)
 				)
-			->addRunnerField(
-				new runner\result\cli(
-				),
-				array(atoum\runner::runStop)
 			)
-			->addRunnerField(
+			->addField(new runner\duration\cli())
+			->addField(new runner\result\cli())
+			->addField(
 				new runner\failures\cli(
 					null,
 					null,
 					new prompt('   ')
-				),
-				array(atoum\runner::runStop)
+				)
 			)
-			->addRunnerField(
+			->addField(
 				new runner\outputs\cli(
 					null,
 					null,
 					new prompt('   ')
-				),
-				array(atoum\runner::runStop)
+				)
 			)
-			->addRunnerField(
+			->addField(
 				new runner\errors\cli(
 					null,
 					null,
 					new prompt('   '),
 					null,
 					new prompt('      ')
-				),
-				array(atoum\runner::runStop)
+				)
 			)
-			->addRunnerField(
+			->addField(
 				new runner\exceptions\cli(
 					null,
 					null,
 					new prompt('   '),
 					null,
 					new prompt('      ')
-				),
-				array(atoum\runner::runStop)
+				)
 			)
-			->addRunnerField(
-				new runner\tests\duration\cli(),
-				array(atoum\runner::runStop)
+			->addField(new runner\tests\uncompleted\cli(
+					null,
+					null,
+					new prompt('   '),
+					null,
+					new prompt('      ')
+				)
 			)
-			->addRunnerField(
-				new runner\tests\memory\cli(),
-				array(atoum\runner::runStop)
+			->addField(new runner\tests\duration\cli())
+			->addField(new runner\tests\memory\cli())
+			->addField(
+				new runner\tests\coverage\cli(
+					null,
+					new prompt('   '),
+					new prompt('      ')
+				)
 			)
-			->addRunnerField(
-				new runner\tests\coverage\cli(null, new prompt('   '), new prompt('      ')),
-				array(atoum\runner::runStop)
+			->addField(new test\run\cli())
+			->addField(new test\duration\cli(
+					new prompt('   ')
+				)
 			)
-			->addTestField(
-				new test\run\cli(),
-				array(atoum\test::runStart)
+			->addField(new test\memory\cli(
+					new prompt('   ')
+				)
 			)
-			->addTestField(new test\duration\cli(new prompt('   ')), array(atoum\test::runStop))
-			->addTestField(new test\memory\cli(new prompt('   ')), array(atoum\test::runStop))
 		;
 	}
 }

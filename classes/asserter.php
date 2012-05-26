@@ -8,6 +8,39 @@ use
 	mageekguy\atoum\exceptions
 ;
 
+/**
+ * @property    mageekguy\atoum\asserter                       if
+ * @property    mageekguy\atoum\asserter                       and
+ * @property    mageekguy\atoum\asserter                       then
+ *
+ * @method      mageekguy\atoum\asserter                       if()
+ * @method      mageekguy\atoum\asserter                       and()
+ * @method      mageekguy\atoum\asserter                       then()
+ *
+ * @method      mageekguy\atoum\asserters\adapter              adapter()
+ * @method      mageekguy\atoum\asserters\afterDestructionOf   afterDestructionOf()
+ * @method      mageekguy\atoum\asserters\phpArray             array()
+ * @method      mageekguy\atoum\asserters\boolean              boolean()
+ * @method      mageekguy\atoum\asserters\castToString         castToString()
+ * @method      mageekguy\atoum\asserters\phpClass             class()
+ * @method      mageekguy\atoum\asserters\dateTime             dateTime()
+ * @method      mageekguy\atoum\asserters\error                error()
+ * @method      mageekguy\atoum\asserters\exception            exception()
+ * @method      mageekguy\atoum\asserters\float                float()
+ * @method      mageekguy\atoum\asserters\hash                 hash()
+ * @method      mageekguy\atoum\asserters\integer              integer()
+ * @method      mageekguy\atoum\asserters\mock                 mock()
+ * @method      mageekguy\atoum\asserters\mysqlDateTime        mysqlDateTime()
+ * @method      mageekguy\atoum\asserters\object               object()
+ * @method      mageekguy\atoum\asserters\output               output()
+ * @method      mageekguy\atoum\asserters\phpArray             phpArray()
+ * @method      mageekguy\atoum\asserters\phpClass             phpClass()
+ * @method      mageekguy\atoum\asserters\sizeOf               sizeOf()
+ * @method      mageekguy\atoum\asserters\stream               stream()
+ * @method      mageekguy\atoum\asserters\string               string()
+ * @method      mageekguy\atoum\asserters\testedClass          testedClass()
+ * @method      mageekguy\atoum\asserters\variable             variable()
+ */
 abstract class asserter
 {
 	protected $generator = null;
@@ -24,7 +57,28 @@ abstract class asserter
 
 	public function __call($method, $arguments)
 	{
-		return call_user_func_array(array($this->generator, $method), $arguments);
+		switch ($method)
+		{
+			case 'foreach':
+				if (isset($arguments[0]) === false || (is_array($arguments[0]) === false && $arguments[0] instanceof \traversable === false))
+				{
+					throw new exceptions\logic\invalidArgument('First argument of ' . get_class($this) . '::' . $method . '() must be an array or a \traversable instance');
+				}
+				else if (isset($arguments[1]) === false || $arguments[1] instanceof \closure === false)
+				{
+					throw new exceptions\logic\invalidArgument('Second argument of ' . get_class($this) . '::' . $method . '() must be a closure');
+				}
+
+				foreach ($arguments[0] as $key => $value)
+				{
+					call_user_func_array($arguments[1], array($this, $value, $key));
+				}
+
+				return $this;
+
+			default:
+				return $this->generator->__call($method, $arguments);
+		}
 	}
 
 	public function reset()
@@ -77,42 +131,35 @@ abstract class asserter
 		}
 	}
 
+	public function setWithTest(test $test)
+	{
+		return $this;
+	}
+
+	public function setWithArguments(array $arguments)
+	{
+		if (sizeof($arguments) > 0)
+		{
+			call_user_func_array(array($this, 'setWith'), $arguments);
+		}
+
+		return $this;
+	}
+
 	public abstract function setWith($mixed);
 
 	protected function pass()
 	{
-		$this->getScore()->addPass();
+		$this->generator->asserterPass($this);
 
 		return $this;
 	}
 
 	protected function fail($reason)
 	{
-		$test = $this->generator->getTest();
+		$this->generator->asserterFail($this, $reason);
 
-		$class = $test->getClass();
-		$method = $test->getCurrentMethod();
-		$file = $test->getPath();
-
-		$line = null;
-		$function = null;
-
-		$currentClass = get_class($this);
-
-		foreach (array_filter(debug_backtrace(), function($backtrace) use ($file) { return isset($backtrace['file']) === true && $backtrace['file'] === $file; }) as $backtrace)
-		{
-			if ($line === null && isset($backtrace['line']) === true)
-			{
-				$line = $backtrace['line'];
-			}
-
-			if ($function === null && isset($backtrace['object']) === true && isset($backtrace['function']) === true && $backtrace['object'] === $this && $backtrace['function'] !== '__call')
-			{
-				$function = $backtrace['function'];
-			}
-		}
-
-		throw new asserter\exception($reason, $this->getScore()->addFail($file, $line, $class, $method, get_class($this) . ($function ? '::' . $function : '') . '()', $reason));
+		return $this;
 	}
 }
 

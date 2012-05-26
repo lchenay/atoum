@@ -13,9 +13,9 @@ use
 
 class cli extends realtime
 {
-	public function __construct()
+	public function __construct(atoum\factory $factory = null)
 	{
-		parent::__construct();
+		parent::__construct($factory);
 
 		$firstLevelPrompt = new prompt('> ');
 		$firstLevelColorizer = new colorizer('1;36');
@@ -40,108 +40,102 @@ class cli extends realtime
 		$exceptionPrompt = clone $thirdLevelPrompt;
 		$exceptionPrompt->setColorizer($exceptionColorizer);
 
+		$uncompletedTestColorizer = new colorizer('0;37');
+		$uncompletedTestMethodPrompt = clone $secondLevelPrompt;
+		$uncompletedTestMethodPrompt->setColorizer($uncompletedTestColorizer);
+		$uncompletedTestOutputPrompt = clone $thirdLevelPrompt;
+		$uncompletedTestOutputPrompt->setColorizer($uncompletedTestColorizer);
+
 		$this
-			->addRunnerField(new runner\atoum\cli(
+			->addField(new runner\php\path\cli(
 						$firstLevelPrompt,
 						$firstLevelColorizer
-					),
-					array(atoum\runner::runStart)
+					)
 				)
-			->addRunnerField(new runner\php\path\cli(
-						$firstLevelPrompt,
-						$firstLevelColorizer
-					),
-					array(atoum\runner::runStart)
-				)
-			->addRunnerField(new runner\php\version\cli(
+			->addField(new runner\php\version\cli(
 						$firstLevelPrompt,
 						$firstLevelColorizer,
 						$secondLevelPrompt
-					),
-					array(atoum\runner::runStart)
+					)
 				)
-			->addRunnerField(new runner\tests\duration\cli(
+			->addField(new runner\tests\duration\cli(
 						$firstLevelPrompt,
 						$firstLevelColorizer
-					),
-					array(atoum\runner::runStop)
+					)
 				)
-			->addRunnerField(new runner\tests\memory\cli(
+			->addField(new runner\tests\memory\cli(
 						$firstLevelPrompt,
 						$firstLevelColorizer
-					),
-					array(atoum\runner::runStop)
+					)
 				)
-			->addRunnerField(new runner\tests\coverage\cli(
+			->addField(new runner\tests\coverage\cli(
 						$firstLevelPrompt,
 						$secondLevelPrompt,
 						new prompt('==> ', $firstLevelColorizer),
 						$firstLevelColorizer
-					),
-					array(atoum\runner::runStop)
+					)
 				)
-			->addRunnerField(new runner\duration\cli(
+			->addField(new runner\duration\cli(
 						$firstLevelPrompt,
 						$firstLevelColorizer
-					),
-					array(atoum\runner::runStop)
+					)
 				)
-			->addRunnerField(new runner\result\cli(
+			->addField(new runner\result\cli(
 						null,
 						new colorizer('0;37', '42'),
 						new colorizer('0;37', '41')
-					),
-					array(atoum\runner::runStop)
+					)
 				)
-			->addRunnerField(new runner\failures\cli(
+			->addField(new runner\failures\cli(
 						$firstLevelPrompt,
 						$failureColorizer,
 						$failurePrompt
-					),
-					array(atoum\runner::runStop)
+					)
 				)
-			->addRunnerField(
+			->addField(
 				new runner\outputs\cli(
 						$firstLevelPrompt,
 						$firstLevelColorizer,
 						$secondLevelPrompt
-					),
-					array(atoum\runner::runStop)
+					)
 				)
-			->addRunnerField(new runner\errors\cli(
+			->addField(new runner\errors\cli(
 						$firstLevelPrompt,
 						$errorColorizer,
 						$errorMethodPrompt,
 						null,
 						$errorPrompt
-					),
-					array(atoum\runner::runStop)
+					)
 				)
-			->addRunnerField(new runner\exceptions\cli(
+			->addField(new runner\exceptions\cli(
 						$firstLevelPrompt,
 						$exceptionColorizer,
 						$exceptionMethodPrompt,
 						null,
 						$exceptionPrompt
-					),
-					array(atoum\runner::runStop)
+					)
 				)
-			->addTestField(new test\run\cli(
+			->addField(new runner\tests\uncompleted\cli(
+						$firstLevelPrompt,
+						$uncompletedTestColorizer,
+						$uncompletedTestMethodPrompt,
+						null,
+						$uncompletedTestOutputPrompt
+					)
+				)
+			->addField(new test\run\cli(
 						$firstLevelPrompt,
 						$firstLevelColorizer
-					),
-					array(atoum\test::runStart)
+					)
 				)
-			->addTestField(new test\event\cli())
-			->addTestField(new test\duration\cli(
+			->addField(new test\event\cli())
+			->addField(new test\duration\cli(
 						$secondLevelPrompt
-					),
-					array(atoum\test::runStop)
+					)
 				)
-			->addTestField(new test\memory\cli(
+			->addField(new test\memory\cli(
 						$secondLevelPrompt
-					),
-					array(atoum\test::runStop)
+					)
 				)
 		;
 	}
