@@ -57,6 +57,13 @@ abstract class test implements observable, adapter\aggregator, \countable
 	private $class = '';
 
     /**
+     * Current test class namespace
+     *
+     * @var string
+     */
+	private $classNamespace = '';
+
+    /**
      * @var string
      */
 	private $testedClass = null;
@@ -875,6 +882,14 @@ abstract class test implements observable, adapter\aggregator, \countable
 	public function getClass()
 	{
 		return $this->class;
+	}
+
+    /**
+     * @return string
+     */
+	public function getClassNamespace()
+	{
+		return $this->classNamespace;
 	}
 
 
