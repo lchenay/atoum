@@ -55,6 +55,12 @@ abstract class test implements observable, adapter\aggregator, \countable
      * @var string
      */
 	private $class = '';
+
+    /**
+     * Current test class namespace
+     *
+     * @var string
+     */
 	private $classNamespace = '';
 
     /**
@@ -879,6 +885,9 @@ abstract class test implements observable, adapter\aggregator, \countable
 		return $this->class;
 	}
 
+    /**
+     * @return string
+     */
 	public function getClassNamespace()
 	{
 		return $this->classNamespace;
