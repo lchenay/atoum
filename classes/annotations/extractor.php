@@ -4,8 +4,15 @@ namespace mageekguy\atoum\annotations;
 
 class extractor
 {
+    /**
+     * @var array
+     */
 	protected $handlers = array();
 
+    /**
+     * @param string $comments
+     * @return $this
+     */
 	public function extract($comments)
 	{
 		$comments = trim((string) $comments);
@@ -42,6 +49,11 @@ class extractor
 		return $this;
 	}
 
+    /**
+     * @param string $annotation
+     * @param closure $handler
+     * @return extractor
+     */
 	public function setHandler($annotation, \closure $handler)
 	{
 		$this->handlers[$annotation] = $handler;
@@ -49,6 +61,10 @@ class extractor
 		return $this;
 	}
 
+    /**
+     * @param $annotation
+     * @return $this
+     */
 	public function unsetHandler($annotation)
 	{
 		if (isset($this->handlers[$annotation]) === true)
@@ -59,11 +75,17 @@ class extractor
 		return $this;
 	}
 
+    /**
+     * @return array
+     */
 	public function getHandlers()
 	{
 		return $this->handlers;
 	}
 
+    /**
+     * @return $this
+     */
 	public function resetHandlers()
 	{
 		$this->handlers = array();
@@ -71,11 +93,23 @@ class extractor
 		return $this;
 	}
 
+    /**
+     * Convert on/off string value to true/false
+     *
+     * @static
+     * @param string $value
+     * @return bool
+     */
 	public static function toBoolean($value)
 	{
 		return strcasecmp($value, 'on') == 0;
 	}
 
+    /**
+     * @static
+     * @param string $value
+     * @return array
+     */
 	public static function toArray($value)
 	{
 		return array_values(array_unique(preg_split('/\s+/', $value)));

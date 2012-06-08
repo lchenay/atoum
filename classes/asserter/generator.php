@@ -160,12 +160,21 @@ class generator
 	}
 
 
+    /**
+     * @param \mageekguy\atoum\asserter $asserter
+     * @return $this
+     */
 	public function asserterPass(atoum\asserter $asserter)
 	{
 		return $this;
 	}
 
 
+    /**
+     * @param \mageekguy\atoum\asserter $asserter
+     * @param $reason
+     * @throws exception
+     */
     public function asserterFail(atoum\asserter $asserter, $reason)
 	{
 		throw new exception($reason);
@@ -195,6 +204,12 @@ class generator
 	}
 
 
+    /**
+     * @param $asserter
+     * @param array $arguments
+     * @return mixed
+     * @throws \mageekguy\atoum\exceptions\logic\invalidArgument
+     */
 	public function getAsserterInstance($asserter, array $arguments = array())
 	{
 		if (($asserterClass = $this->getAsserterClass($asserter)) === null)

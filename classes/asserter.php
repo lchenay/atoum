@@ -155,6 +155,11 @@ abstract class asserter
 		return $this;
 	}
 
+    /**
+     * @param $reason
+     * @return asserter
+     * @throws exception
+     */
 	protected function fail($reason)
 	{
 		$this->generator->asserterFail($this, $reason);

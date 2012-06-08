@@ -42,6 +42,10 @@ use
  */
 class object extends asserters\variable
 {
+    /**
+     * @param string $property
+     * @return mixed
+     */
 	public function __get($property)
 	{
 		switch ($property)
@@ -100,6 +104,12 @@ class object extends asserters\variable
 		return $this;
 	}
 
+    /**
+     * @param $size
+     * @param null|string $failMessage
+     * @return $this
+     * @throws exception
+     */
 	public function hasSize($size, $failMessage = null)
 	{
 		if (sizeof($this->valueIsSet()->value) == $size)
