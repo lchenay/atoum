@@ -226,6 +226,7 @@ abstract class test implements observable, adapter\aggregator, \countable
 
 		$this->path = $class->getFilename();
 		$this->class = $class->getName();
+		$this->classNamespace = $class->getNamespaceName();
 
 		$annotationExtractor = $this->factory['mageekguy\atoum\annotations\extractor']();
 
